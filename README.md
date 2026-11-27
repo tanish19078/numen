@@ -37,6 +37,8 @@ numen/
 │   ├── Numen_Pitch_Deck.pptx          # 9-slide sunlit mint-green PowerPoint deck
 │   └── Numen_Keynote_Live.html        # Interactive stage keynote + live simulator
 ├── docs/
+│   ├── AGENTIC_COMMERCE_FRONTIER.md   # Macro $3T-$15T shift & 3-asymmetry thesis
+│   ├── RESEARCH_DERIVATIONS.md        # CaMeL, AgentDojo, Dual Firewalls & AttriGuard
 │   ├── ARCHITECTURE.md                # Gemini Enterprise ADK/A2A/Sandbox architecture
 │   ├── AP2_PROTOCOL.md                # Ed25519 Intent -> Cart -> Payment Mandate spec
 │   ├── ATTRIGUARD_FIREWALL.md         # Counterfactual drift & DOM/FinePrint math
@@ -56,6 +58,7 @@ numen/
 │   │   ├── main.py                    # FastAPI app, REST API, SSE & SPA static mount
 │   │   └── agents/
 │   │       ├── a2a.py                 # Typed A2A envelopes + SSE broadcaster
+│   │       ├── camel_capabilities.py  # DeepMind CaMeL control-data provenance guard
 │   │       ├── attriguard.py          # Dual DOM sanitizer + counterfactual drift scorer
 │   │       ├── fineprint_auditor.py   # Clause trap extractor + homoglyph detector
 │   │       ├── budget_controller.py   # Daily allowance, MCC & retry-loop breaker
@@ -130,6 +133,8 @@ External AI agents request payment credentials via `POST /mcp`:
 
 ## 6. Research & Protocol References
 
-- **Google Cloud AP2 (Agent Payments Protocol):** Verifiable Credential chain (`IntentMandate -> CartMandate -> PaymentMandate`).
-- **AttriGuard (`arXiv:2603.10749`):** Action-level counterfactual causal attribution for indirect prompt-injection detection.
+- **Google Cloud `AP2` + Stripe/OpenAI `ACP` + `x402`:** Layered Authorization, Checkout, and Settlement protocols ([`docs/AGENTIC_COMMERCE_FRONTIER.md`](docs/AGENTIC_COMMERCE_FRONTIER.md)).
+- **Google DeepMind `CaMeL` (`arXiv:2503.18813`):** *Defeating Prompt Injections by Design* — privileged control flow vs. quarantined untrusted data ([`docs/RESEARCH_DERIVATIONS.md`](docs/RESEARCH_DERIVATIONS.md)).
+- **`AgentDojo` Banking Suite (`arXiv:2406.13352`):** Empirical 50%–75%+ indirect prompt injection ASR on unshielded banking agents.
+- **`AttriGuard` (`arXiv:2603.10749`, USENIX Security):** Action-level counterfactual causal attribution achieving 0% static indirect prompt-injection ASR.
 - **Dual Tool Firewalls (`arXiv:2510.05244`):** Model-agnostic input minimization and untrusted tool-output sanitization.
