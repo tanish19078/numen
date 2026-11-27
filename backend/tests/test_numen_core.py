@@ -458,3 +458,70 @@ def test_adversarial_evasion_nfkc_html_entities_punycode_and_dom_attestation(tem
     res_good_att = evaluate_spend_request(good_att, db_path=temp_db)
     assert res_good_att.decision == "MINTED"
     assert res_good_att.camel_provenance.capability_checks["CAP_DOM_ATTESTATION"] is True
+
+
+def test_stripe_issuing_jit_webhook_and_tolerance_band(temp_db):
+    import hashlib
+    import hmac
+    import json
+    from app.config import get_settings
+
+    # 1. Test tolerance_bps policy (+1.5% allowed under 200 bps, +3% rejected)
+    card_tol = sandbox_mint.mint_scoped_virtual_card(
+        agent_id="agent-devops",
+        merchant_name="RunPod Cloud",
+        merchant_mcc="CLOUD",
+        exact_amount_inr=1000.0,
+        payment_mandate_id="pm_tol_1",
+    )
+    ok_over, code_over, _, _ = sandbox_mint.validate_and_settle_charge(card_tol, "RunPod Cloud", "CLOUD", 1030.0, tolerance_bps=200)
+    assert ok_over is False and code_over == "AMOUNT_MISMATCH"
+    ok_fx, code_fx, _, shredded_fx = sandbox_mint.validate_and_settle_charge(card_tol, "RunPod Cloud", "CLOUD", 1015.0, tolerance_bps=200)
+    assert ok_fx is True and code_fx == "SETTLED_AND_SHREDDED"
+    assert shredded_fx.status == "SHREDDED"
+
+    # 2. Test real Stripe Issuing JIT Webhook end-to-end
+    with TestClient(app) as client:
+        ev = client.post(
+            "/api/spend/evaluate",
+            json={
+                "agent_id": "agent-devops",
+                "merchant_name": "RunPod Cloud",
+                "merchant_domain": "runpod.io",
+                "merchant_mcc": "CLOUD",
+                "amount_inr": 3400.0,
+                "cart_items": ["GPU"],
+            },
+        )
+        card_id = ev.json()["virtual_card"]["card_id"]
+
+        stripe_body = json.dumps(
+            {
+                "type": "issuing_authorization.request",
+                "data": {
+                    "object": {
+                        "amount": 340000,
+                        "card": {"metadata": {"numen_card_id": card_id, "tolerance_bps": 0}},
+                        "merchant_data": {"name": "RunPod Cloud", "category": "CLOUD"},
+                    }
+                },
+            }
+        ).encode("utf-8")
+
+        # Invalid HMAC -> 401
+        bad_resp = client.post("/api/webhooks/stripe-issuing", content=stripe_body, headers={"Stripe-Signature": "t=123,v1=deadbeef"})
+        assert bad_resp.status_code == 401
+
+        # Valid HMAC -> approved + shreds card
+        secret = get_settings().stripe_webhook_secret
+        sig = hmac.new(secret.encode("utf-8"), b"1700000000." + stripe_body, hashlib.sha256).hexdigest()
+        good_resp = client.post("/api/webhooks/stripe-issuing", content=stripe_body, headers={"Stripe-Signature": f"t=1700000000,v1={sig}"})
+        assert good_resp.status_code == 200
+        assert good_resp.json()["approved"] is True
+        assert good_resp.json()["metadata"]["card_status"] == "SHREDDED"
+
+        # Replay of Stripe webhook declines because card was shredded atomically
+        replay_resp = client.post("/api/webhooks/stripe-issuing", content=stripe_body, headers={"Stripe-Signature": f"t=1700000000,v1={sig}"})
+        assert replay_resp.status_code == 200
+        assert replay_resp.json()["approved"] is False
+        assert replay_resp.json()["metadata"]["reason_code"] == "CARD_SHREDDED"

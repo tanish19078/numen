@@ -26,6 +26,7 @@ from .models import (
     SpendRequest,
 )
 from .scenarios import DEMO_SCENARIOS, run_240_benchmarks
+from .issuers.stripe_jit import StripeIssuingJITAdapter
 from .mcp_server import handle_mcp_rpc
 
 
@@ -328,6 +329,15 @@ def get_ledger_entries(limit: int = 100) -> dict[str, Any]:
 @app.get("/api/audit/verify-chain")
 def verify_audit_chain() -> dict[str, Any]:
     return db.verify_audit_log_chain()
+
+
+@app.post("/api/webhooks/stripe-issuing")
+async def stripe_issuing_jit_webhook(request: Request):
+    """Real-time Stripe Issuing JIT Authorization webhook enforcing ±₹0.00 / tolerance_bps & single-use shredding."""
+    raw_body = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+    status_code, payload = StripeIssuingJITAdapter().handle_webhook(raw_body, sig_header)
+    return JSONResponse(status_code=status_code, content=payload)
 
 
 @app.get("/api/stream")
