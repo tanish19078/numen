@@ -27,6 +27,21 @@ from .models import (
 DEFAULT_VAULT_ID = "vault_acme_01"
 DEFAULT_VAULT_NAME = "Acme AI Labs — Operating Vault"
 DEFAULT_VAULT_BALANCE = 1840000.0
+_GENESIS_AUDIT_HASH = "0" * 64
+
+
+def _compute_audit_hash(
+    prev_hash: str,
+    trace_id: str,
+    agent_id: str,
+    event_type: str,
+    decision: str,
+    summary: str,
+    created_at: str,
+) -> str:
+    import hashlib
+    raw = f"{prev_hash}|{trace_id}|{agent_id}|{event_type}|{decision}|{summary}|{created_at}".encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
 
 
 @contextmanager
@@ -49,6 +64,9 @@ def get_conn(db_path: str | None = None) -> Iterator[sqlite3.Connection]:
 
 def init_schema(db_path: str | None = None) -> None:
     with get_conn(db_path) as conn:
+        cols = [r["name"] for r in conn.execute("PRAGMA table_info(audit_events)").fetchall()]
+        if cols and "event_hash" not in cols:
+            conn.execute("DROP TABLE audit_events;")
         conn.executescript(
             """
             CREATE TABLE IF NOT EXISTS master_vault (
@@ -113,14 +131,36 @@ def init_schema(db_path: str | None = None) -> None:
             );
 
             CREATE TABLE IF NOT EXISTS audit_events (
-                event_id TEXT PRIMARY KEY,
+                seq_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id TEXT UNIQUE NOT NULL,
                 trace_id TEXT NOT NULL,
                 agent_id TEXT NOT NULL,
                 event_type TEXT NOT NULL,
                 decision TEXT NOT NULL,
                 summary TEXT NOT NULL,
                 metadata_json TEXT NOT NULL,
+                prev_hash TEXT NOT NULL,
+                event_hash TEXT NOT NULL,
                 created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS ledger_entries (
+                seq_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entry_id TEXT UNIQUE NOT NULL,
+                tx_id TEXT NOT NULL,
+                account_id TEXT NOT NULL,
+                direction TEXT NOT NULL,
+                amount_paise INTEGER NOT NULL,
+                currency TEXT NOT NULL DEFAULT 'INR',
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS idempotency_keys (
+                agent_id TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                response_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (agent_id, idempotency_key)
             );
             """
         )
@@ -191,6 +231,7 @@ def _seed_initial_data(conn: sqlite3.Connection) -> None:
             (mandate.mandate_id, aid, mandate.model_dump_json(), mandate.issued_at),
         )
 
+    boot_ts = datetime.now(timezone.utc).isoformat()
     boot_event = AuditEvent(
         event_id=f"evt_{uuid4().hex[:8]}",
         trace_id="trace_boot",
@@ -199,12 +240,21 @@ def _seed_initial_data(conn: sqlite3.Connection) -> None:
         decision="READY",
         summary="Initialized Acme Master Vault (INR 18,40,000) and signed 3 Ed25519 AP2 IntentMandates.",
         metadata={"agents": 3, "protocol": "AP2-Ed25519"},
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=boot_ts,
+    )
+    boot_hash = _compute_audit_hash(
+        _GENESIS_AUDIT_HASH,
+        boot_event.trace_id,
+        boot_event.agent_id,
+        boot_event.event_type,
+        boot_event.decision,
+        boot_event.summary,
+        boot_event.created_at,
     )
     conn.execute(
         """
-        INSERT INTO audit_events (event_id, trace_id, agent_id, event_type, decision, summary, metadata_json, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO audit_events (event_id, trace_id, agent_id, event_type, decision, summary, metadata_json, prev_hash, event_hash, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             boot_event.event_id,
@@ -214,6 +264,8 @@ def _seed_initial_data(conn: sqlite3.Connection) -> None:
             boot_event.decision,
             boot_event.summary,
             json.dumps(boot_event.metadata),
+            _GENESIS_AUDIT_HASH,
+            boot_hash,
             boot_event.created_at,
         ),
     )
@@ -232,6 +284,8 @@ def reset_demo_state(db_path: str | None = None) -> None:
     with get_conn(db_path) as conn:
         for tbl in [
             "audit_events",
+            "ledger_entries",
+            "idempotency_keys",
             "transactions",
             "spend_history",
             "passkey_challenges",
@@ -393,26 +447,106 @@ def list_virtual_cards(limit: int = 25, db_path: str | None = None) -> list[Virt
         return cards
 
 
-def record_settlement_and_debit(card: VirtualCard, amount_inr: float, db_path: str | None = None) -> MasterVault:
+def get_idempotent_evaluation(agent_id: str, idempotency_key: str, db_path: str | None = None) -> str | None:
+    with get_conn(db_path) as conn:
+        r = conn.execute(
+            "SELECT response_json FROM idempotency_keys WHERE agent_id = ? AND idempotency_key = ?",
+            (agent_id, idempotency_key),
+        ).fetchone()
+        return r["response_json"] if r else None
+
+
+def save_idempotent_evaluation(agent_id: str, idempotency_key: str, response_json: str, db_path: str | None = None) -> None:
     now_iso = datetime.now(timezone.utc).isoformat()
     with get_conn(db_path) as conn:
         conn.execute(
-            "UPDATE virtual_cards SET payload_json = ?, status = ? WHERE card_id = ?",
+            "INSERT OR IGNORE INTO idempotency_keys (agent_id, idempotency_key, response_json, created_at) VALUES (?, ?, ?, ?)",
+            (agent_id, idempotency_key, response_json, now_iso),
+        )
+
+
+def settle_card_atomic(
+    card: VirtualCard,
+    amount_inr: float,
+    db_path: str | None = None,
+) -> tuple[bool, str, MasterVault | None]:
+    """
+    Atomic compare-and-swap (CAS) settlement + balanced double-entry paise ledger write.
+    Prevents race-condition double spend on concurrent card charge calls.
+    """
+    now_iso = datetime.now(timezone.utc).isoformat()
+    rounded_amt = round(float(amount_inr), 2)
+    amount_paise = int(round(rounded_amt * 100))
+    tx_id = f"tx_{uuid4().hex[:10]}"
+
+    with get_conn(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE;")
+        cur = conn.execute(
+            "UPDATE virtual_cards SET payload_json = ?, status = ? WHERE card_id = ? AND status = 'ACTIVE'",
             (card.model_dump_json(), card.status, card.card_id),
         )
-        conn.execute(
-            "UPDATE master_vault SET balance_inr = balance_inr - ? WHERE vault_id = ?",
-            (round(amount_inr, 2), DEFAULT_VAULT_ID),
+        if cur.rowcount != 1:
+            conn.rollback()
+            return False, "CARD_ALREADY_SETTLED_OR_CONFLICT", None
+
+        cur_vault = conn.execute(
+            "UPDATE master_vault SET balance_inr = ROUND(balance_inr - ?, 2) WHERE vault_id = ? AND balance_inr >= ?",
+            (rounded_amt, DEFAULT_VAULT_ID, rounded_amt),
         )
+        if cur_vault.rowcount != 1:
+            conn.rollback()
+            return False, "INSUFFICIENT_VAULT_FUNDS", None
+
         conn.execute(
-            "UPDATE agent_accounts SET spent_today_inr = spent_today_inr + ? WHERE agent_id = ?",
-            (round(amount_inr, 2), card.agent_id),
+            "UPDATE agent_accounts SET spent_today_inr = ROUND(spent_today_inr + ?, 2) WHERE agent_id = ?",
+            (rounded_amt, card.agent_id),
         )
         conn.execute(
             "INSERT INTO transactions (tx_id, card_id, agent_id, merchant_name, merchant_mcc, amount_inr, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (f"tx_{uuid4().hex[:10]}", card.card_id, card.agent_id, card.merchant_name, card.merchant_mcc, round(amount_inr, 2), now_iso),
+            (tx_id, card.card_id, card.agent_id, card.merchant_name, card.merchant_mcc, rounded_amt, now_iso),
         )
-    return get_vault(db_path)
+        # Balanced Double-Entry Paise Accounting: DEBIT Treasury Vault, CREDIT Merchant
+        conn.execute(
+            "INSERT INTO ledger_entries (entry_id, tx_id, account_id, direction, amount_paise, currency, created_at) VALUES (?, ?, ?, 'DEBIT', ?, 'INR', ?)",
+            (f"le_{uuid4().hex[:10]}", tx_id, DEFAULT_VAULT_ID, amount_paise, now_iso),
+        )
+        conn.execute(
+            "INSERT INTO ledger_entries (entry_id, tx_id, account_id, direction, amount_paise, currency, created_at) VALUES (?, ?, ?, 'CREDIT', ?, 'INR', ?)",
+            (f"le_{uuid4().hex[:10]}", tx_id, f"merchant:{card.merchant_name.strip().lower()}", amount_paise, now_iso),
+        )
+
+    return True, "SETTLED", get_vault(db_path)
+
+
+def record_settlement_and_debit(card: VirtualCard, amount_inr: float, db_path: str | None = None) -> MasterVault:
+    ok, code, vault = settle_card_atomic(card, amount_inr, db_path=db_path)
+    if not ok or vault is None:
+        raise RuntimeError(f"Atomic settlement failed: {code}")
+    return vault
+
+
+def list_ledger_entries(limit: int = 100, db_path: str | None = None) -> dict:
+    with get_conn(db_path) as conn:
+        rows = conn.execute(
+            "SELECT entry_id, tx_id, account_id, direction, amount_paise, currency, created_at FROM ledger_entries ORDER BY seq_id DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        totals = conn.execute(
+            """
+            SELECT
+              COALESCE(SUM(CASE WHEN direction = 'DEBIT' THEN amount_paise ELSE 0 END), 0) AS debits,
+              COALESCE(SUM(CASE WHEN direction = 'CREDIT' THEN amount_paise ELSE 0 END), 0) AS credits
+            FROM ledger_entries
+            """
+        ).fetchone()
+        debits = int(totals["debits"]) if totals else 0
+        credits = int(totals["credits"]) if totals else 0
+        return {
+            "entries": [dict(r) for r in rows],
+            "total_debits_paise": debits,
+            "total_credits_paise": credits,
+            "balanced": debits == credits,
+        }
 
 
 def save_passkey_challenge(challenge: PasskeyChallenge, db_path: str | None = None) -> None:
@@ -476,10 +610,22 @@ def record_audit_event(
         created_at=datetime.now(timezone.utc).isoformat(),
     )
     with get_conn(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE;")
+        last = conn.execute("SELECT event_hash FROM audit_events ORDER BY seq_id DESC LIMIT 1").fetchone()
+        prev_hash = last["event_hash"] if last else _GENESIS_AUDIT_HASH
+        ev_hash = _compute_audit_hash(
+            prev_hash,
+            evt.trace_id,
+            evt.agent_id,
+            evt.event_type,
+            evt.decision,
+            evt.summary,
+            evt.created_at,
+        )
         conn.execute(
             """
-            INSERT INTO audit_events (event_id, trace_id, agent_id, event_type, decision, summary, metadata_json, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO audit_events (event_id, trace_id, agent_id, event_type, decision, summary, metadata_json, prev_hash, event_hash, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 evt.event_id,
@@ -489,15 +635,42 @@ def record_audit_event(
                 evt.decision,
                 evt.summary,
                 json.dumps(evt.metadata),
+                prev_hash,
+                ev_hash,
                 evt.created_at,
             ),
         )
     return evt
 
 
+def verify_audit_log_chain(db_path: str | None = None) -> dict:
+    """Recompute every SHA-256 link in audit_events to detect post-hoc row tampering."""
+    with get_conn(db_path) as conn:
+        rows = conn.execute(
+            "SELECT event_id, trace_id, agent_id, event_type, decision, summary, prev_hash, event_hash, created_at FROM audit_events ORDER BY seq_id ASC"
+        ).fetchall()
+        expected_prev = _GENESIS_AUDIT_HASH
+        for r in rows:
+            if r["prev_hash"] != expected_prev:
+                return {"valid": False, "checked_events": len(rows), "broken_event_id": r["event_id"]}
+            recomputed = _compute_audit_hash(
+                r["prev_hash"],
+                r["trace_id"],
+                r["agent_id"],
+                r["event_type"],
+                r["decision"],
+                r["summary"],
+                r["created_at"],
+            )
+            if recomputed != r["event_hash"]:
+                return {"valid": False, "checked_events": len(rows), "broken_event_id": r["event_id"]}
+            expected_prev = r["event_hash"]
+        return {"valid": True, "checked_events": len(rows), "broken_event_id": None}
+
+
 def list_audit_events(limit: int = 40, db_path: str | None = None) -> list[AuditEvent]:
     with get_conn(db_path) as conn:
-        rows = conn.execute("SELECT * FROM audit_events ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
+        rows = conn.execute("SELECT * FROM audit_events ORDER BY seq_id DESC LIMIT ?", (limit,)).fetchall()
         return [
             AuditEvent(
                 event_id=r["event_id"],

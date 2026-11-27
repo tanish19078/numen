@@ -340,3 +340,44 @@ def test_expired_mandate_rejected_and_ap2_chain_verification(temp_db):
         vc = client.post(f"/api/mandates/verify-chain/{pm_id}")
         assert vc.status_code == 200
         assert vc.json()["valid"] is True
+
+
+def test_idempotency_atomic_double_spend_and_hash_chained_ledger(temp_db):
+    idem_req = SpendRequest(
+        agent_id="agent-devops",
+        merchant_name="RunPod Cloud",
+        merchant_domain="runpod.io",
+        merchant_mcc="CLOUD",
+        amount_inr=1800.0,
+        cart_items=["1x A100"],
+        idempotency_key="idem-gpu-batch-001",
+    )
+    first = evaluate_spend_request(idem_req, db_path=temp_db)
+    second = evaluate_spend_request(idem_req, db_path=temp_db)
+    third = evaluate_spend_request(idem_req, db_path=temp_db)
+    assert first.decision == "MINTED"
+    assert second.trace_id == first.trace_id
+    assert second.virtual_card.card_id == first.virtual_card.card_id
+    assert third.decision == "MINTED"  # Did not trip 3x retry loop because idempotency short-circuited
+
+    shredded_copy = first.virtual_card.model_copy(update={"status": "SHREDDED"})
+    ok1, code1, vault1 = db.settle_card_atomic(shredded_copy, 1800.0, db_path=temp_db)
+    ok2, code2, _ = db.settle_card_atomic(shredded_copy, 1800.0, db_path=temp_db)
+    assert ok1 is True and code1 == "SETTLED"
+    assert ok2 is False and code2 == "CARD_ALREADY_SETTLED_OR_CONFLICT"
+    assert vault1.balance_inr == 1840000.0 - 1800.0
+
+    ledger = db.list_ledger_entries(db_path=temp_db)
+    assert ledger["balanced"] is True
+    assert ledger["total_debits_paise"] == 180000
+    assert ledger["total_credits_paise"] == 180000
+
+    chain_ok = db.verify_audit_log_chain(db_path=temp_db)
+    assert chain_ok["valid"] is True
+
+    # Simulate direct SQLite tampering on latest audit row -> chain check must fail
+    with db.get_conn(temp_db) as conn:
+        conn.execute("UPDATE audit_events SET summary = 'TAMPERED AMOUNT' WHERE seq_id = (SELECT MAX(seq_id) FROM audit_events)")
+    chain_bad = db.verify_audit_log_chain(db_path=temp_db)
+    assert chain_bad["valid"] is False
+    assert chain_bad["broken_event_id"] is not None

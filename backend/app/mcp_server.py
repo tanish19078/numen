@@ -127,8 +127,14 @@ def handle_mcp_rpc(payload: dict[str, Any], db_path: str | None = None) -> dict[
                     charge_amount_inr=float(args["amount_inr"]),
                 )
                 if ok:
-                    vault = db.record_settlement_and_debit(updated, float(args["amount_inr"]), db_path=db_path)
-                    vault_bal = vault.balance_inr
+                    settled_ok, cas_code, vault = db.settle_card_atomic(updated, float(args["amount_inr"]), db_path=db_path)
+                    if not settled_ok or vault is None:
+                        ok = False
+                        code = cas_code
+                        msg = "Concurrent settlement rejected: card already settled or insufficient vault balance."
+                        vault_bal = db.get_vault(db_path=db_path).balance_inr
+                    else:
+                        vault_bal = vault.balance_inr
                 else:
                     vault_bal = db.get_vault(db_path=db_path).balance_inr
                 return {

@@ -37,6 +37,22 @@ def evaluate_spend_request(
     db_path: str | None = None,
     track_velocity: bool = True,
 ) -> EvaluationResponse:
+    if spend_req.idempotency_key:
+        cached_json = db.get_idempotent_evaluation(spend_req.agent_id, spend_req.idempotency_key, db_path=db_path)
+        if cached_json:
+            return EvaluationResponse.model_validate_json(cached_json)
+
+    res = _evaluate_spend_uncached(spend_req, db_path=db_path, track_velocity=track_velocity)
+    if spend_req.idempotency_key:
+        db.save_idempotent_evaluation(spend_req.agent_id, spend_req.idempotency_key, res.model_dump_json(), db_path=db_path)
+    return res
+
+
+def _evaluate_spend_uncached(
+    spend_req: SpendRequest,
+    db_path: str | None = None,
+    track_velocity: bool = True,
+) -> EvaluationResponse:
     t_start = time.perf_counter()
     trace_id = f"trace_{uuid4().hex[:10]}"
     settings = get_settings()

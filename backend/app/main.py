@@ -253,8 +253,14 @@ def charge_card(card_id: str, req: MerchantChargeRequest) -> MerchantChargeRespo
         charge_amount_inr=req.amount_inr,
     )
     if ok:
-        vault = db.record_settlement_and_debit(updated, req.amount_inr)
-        vault_bal = vault.balance_inr
+        settled_ok, cas_code, vault = db.settle_card_atomic(updated, req.amount_inr)
+        if not settled_ok or vault is None:
+            ok = False
+            code = cas_code
+            msg = "Concurrent settlement rejected: card was already settled or vault lacks funds."
+            vault_bal = db.get_vault().balance_inr
+        else:
+            vault_bal = vault.balance_inr
     else:
         vault_bal = db.get_vault().balance_inr
 
@@ -312,6 +318,16 @@ def resolve_passkey(challenge_id: str, req: PasskeyResolveRequest) -> dict[str, 
 def run_benchmarks() -> dict[str, Any]:
     summary = run_240_benchmarks()
     return summary.model_dump()
+
+
+@app.get("/api/ledger/entries")
+def get_ledger_entries(limit: int = 100) -> dict[str, Any]:
+    return db.list_ledger_entries(limit=limit)
+
+
+@app.get("/api/audit/verify-chain")
+def verify_audit_chain() -> dict[str, Any]:
+    return db.verify_audit_log_chain()
 
 
 @app.get("/api/stream")
