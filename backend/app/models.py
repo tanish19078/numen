@@ -128,6 +128,14 @@ class BudgetCheckResult(BaseModel):
     remaining_allowance_inr: float
 
 
+class CaMeLProvenanceResult(BaseModel):
+    privileged_mandate_id: str
+    tainted_inputs: list[str] = Field(default_factory=list)
+    capability_checks: dict[str, bool] = Field(default_factory=dict)
+    violations: list[str] = Field(default_factory=list)
+    control_data_isolated: bool = True
+
+
 class VirtualCard(BaseModel):
     card_id: str
     agent_id: str
@@ -179,6 +187,7 @@ class EvaluationResponse(BaseModel):
     attriguard: AttriGuardResult
     fineprint: FinePrintResult
     budget: BudgetCheckResult
+    camel_provenance: CaMeLProvenanceResult | None = None
     virtual_card: VirtualCard | None = None
     cart_mandate: CartMandate | None = None
     payment_mandate: PaymentMandate | None = None

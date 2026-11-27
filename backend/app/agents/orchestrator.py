@@ -13,6 +13,7 @@ from ..models import (
     A2AMessage,
     AttriGuardResult,
     BudgetCheckResult,
+    CaMeLProvenanceResult,
     EvaluationResponse,
     FinePrintResult,
     PasskeyChallenge,
@@ -21,6 +22,7 @@ from ..models import (
 from .a2a import make_a2a_hop
 from .attriguard import evaluate_attriguard
 from .budget_controller import evaluate_budget_and_velocity
+from .camel_capabilities import evaluate_camel_capabilities
 from .fineprint_auditor import evaluate_fineprint
 
 
@@ -125,7 +127,25 @@ def evaluate_spend_request(
             legacy_static_card_verdict=_legacy_verdict(spend_req.amount_inr),
         )
 
-    # 4. AttriGuard Counterfactual Prompt-Injection Firewall
+    # 4. DeepMind CaMeL Capability & Provenance Guard (Privileged Control vs Quarantined Data)
+    t_cam = time.perf_counter()
+    camel_res: CaMeLProvenanceResult = evaluate_camel_capabilities(mandate, spend_req)
+    a2a_trace.append(
+        make_a2a_hop(
+            trace_id,
+            "ADK.Orchestrator",
+            "CaMeL.CapabilityGuard",
+            "enforce_control_data_provenance",
+            {
+                "control_data_isolated": camel_res.control_data_isolated,
+                "tainted_inputs_count": len(camel_res.tainted_inputs),
+                "violations": camel_res.violations,
+            },
+            (time.perf_counter() - t_cam) * 1000,
+        )
+    )
+
+    # 5. AttriGuard Counterfactual Prompt-Injection Firewall
     t3 = time.perf_counter()
     attriguard = evaluate_attriguard(mandate, spend_req, llm_hint=llm_hint)
     a2a_trace.append(
@@ -166,11 +186,12 @@ def evaluate_spend_request(
             attriguard=attriguard,
             fineprint=FinePrintResult(has_trap=False),
             budget=budget,
+            camel_provenance=camel_res,
             a2a_trace=a2a_trace,
             legacy_static_card_verdict=_legacy_verdict(spend_req.amount_inr),
         )
 
-    # 5. Fine-Print & Lookalike Domain Auditor
+    # 6. Fine-Print & Lookalike Domain Auditor
     t4 = time.perf_counter()
     fineprint = evaluate_fineprint(mandate, spend_req, llm_hint=llm_hint)
     a2a_trace.append(
@@ -207,6 +228,7 @@ def evaluate_spend_request(
             attriguard=attriguard,
             fineprint=fineprint,
             budget=budget,
+            camel_provenance=camel_res,
             a2a_trace=a2a_trace,
             legacy_static_card_verdict=_legacy_verdict(spend_req.amount_inr),
         )
@@ -242,12 +264,13 @@ def evaluate_spend_request(
             attriguard=attriguard,
             fineprint=fineprint,
             budget=budget,
+            camel_provenance=camel_res,
             passkey_challenge=challenge,
             a2a_trace=a2a_trace,
             legacy_static_card_verdict=_legacy_verdict(spend_req.amount_inr),
         )
 
-    # 6. All Gates Passed -> Mint 60s Scoped Luhn Virtual Card & AP2 PaymentMandate in Sandbox
+    # 7. All Gates Passed -> Mint 60s Scoped Luhn Virtual Card & AP2 PaymentMandate in Sandbox
     return _mint_and_persist_card(
         trace_id=trace_id,
         t_start=t_start,
@@ -260,6 +283,7 @@ def evaluate_spend_request(
         fineprint=fineprint,
         budget=budget,
         a2a_trace=a2a_trace,
+        camel_provenance=camel_res,
         db_path=db_path,
     )
 
@@ -276,6 +300,7 @@ def _mint_and_persist_card(
     fineprint: FinePrintResult,
     budget: BudgetCheckResult,
     a2a_trace: list[A2AMessage],
+    camel_provenance: CaMeLProvenanceResult | None = None,
     db_path: str | None = None,
 ) -> EvaluationResponse:
     t5 = time.perf_counter()
@@ -337,6 +362,7 @@ def _mint_and_persist_card(
         attriguard=attriguard,
         fineprint=fineprint,
         budget=budget,
+        camel_provenance=camel_provenance,
         virtual_card=card,
         cart_mandate=cart_mandate,
         payment_mandate=payment_mandate,
