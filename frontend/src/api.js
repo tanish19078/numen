@@ -15,6 +15,7 @@ async function req(url, opts = {}) {
 export const api = {
   getState: () => req('/api/state'),
   getHealth: () => req('/api/health'),
+  getAgentCard: () => req('/.well-known/agent.json'),
   getScenarios: () => req('/api/scenarios'),
   resetDemo: () => req('/api/reset', { method: 'POST' }),
   toggleAgent: (agentId) => req(`/api/agents/${agentId}/toggle-status`, { method: 'POST' }),

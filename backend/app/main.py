@@ -50,6 +50,67 @@ app.add_middleware(
 )
 
 
+@app.get("/.well-known/agent.json")
+def agent_card() -> dict[str, Any]:
+    """A2A Protocol discovery card describing Numen capabilities, protocols, and MCP/REST endpoints."""
+    return {
+        "name": "Numen",
+        "description": (
+            "AP2-native agentic neobank and pre-spend causal firewall. Verifies Ed25519 mandates, "
+            "CaMeL provenance, AttriGuard counterfactual drift, and checkout terms before minting 60s exact-rupee virtual cards."
+        ),
+        "version": "1.0.0",
+        "architecture": "3-Cluster Agentic Quorum (Edge -> Verification Quorum -> Zero-LLM Custody)",
+        "protocols": ["A2A/0.2", "MCP/2025-03-26", "AP2/Ed25519"],
+        "clusters": [
+            {
+                "id": "edge_commerce_cluster",
+                "name": "Cluster 1 · Edge Commerce Agents",
+                "role": "Untrusted agent workloads (DevOps, Procurement, Research, Claude/Cursor) requesting scoped spend via MCP",
+            },
+            {
+                "id": "verification_quorum_cluster",
+                "name": "Cluster 2 · Verification & Consensus Quorum",
+                "role": "Gemini 2.5 Flash/Pro Smart Router coordinating 4 specialist voters: Budget/Loop, CaMeL, AttriGuard, FinePrint",
+            },
+            {
+                "id": "deterministic_custody_cluster",
+                "name": "Cluster 3 · Zero-LLM Deterministic Custody",
+                "role": "Ed25519 AP2 Signer, 60s exact-rupee Luhn PAN Minter (+0.00 INR lock), Auto-Shredder & SQLite WAL",
+            },
+        ],
+        "capabilities": {
+            "streaming": True,
+            "ephemeral_cards": True,
+            "passkey_hitl": True,
+        },
+        "endpoints": {
+            "mcp": "/mcp",
+            "evaluate": "/api/spend/evaluate",
+            "charge": "/api/cards/{card_id}/charge",
+            "stream": "/api/stream",
+            "health": "/api/health",
+        },
+        "skills": [
+            {
+                "id": "request_scoped_card",
+                "name": "Request 60s Scoped Virtual Card",
+                "description": "Evaluate spend causal intent and mint an exact-rupee single-use Luhn virtual card.",
+            },
+            {
+                "id": "get_agent_allowance",
+                "name": "Inspect Agent Sub-Account & Mandate",
+                "description": "Return daily budget allowance, MCC allowlist, and Ed25519 IntentMandate.",
+            },
+            {
+                "id": "settle_ephemeral_card",
+                "name": "Settle Ephemeral Card",
+                "description": "Validate merchant, MCC, and exact rupee tolerance (+/- 0.00 INR) then auto-shred.",
+            },
+        ],
+    }
+
+
 @app.get("/api/health")
 def health() -> dict[str, Any]:
     s = get_settings()

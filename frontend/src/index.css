@@ -2,26 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #f6fbf5;
-  background-image:
-    radial-gradient(circle at 82% 10%, rgba(140, 229, 99, 0.22), transparent 36%),
-    radial-gradient(circle at 12% 85%, rgba(187, 247, 208, 0.35), transparent 40%),
-    radial-gradient(rgba(21, 128, 61, 0.09) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 28px 28px;
-  color: #0d2616;
+@layer base {
+  body {
+    background-color: #f7faf8;
+    color: #0b1f16;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
-.numen-card {
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.surface-card {
   background: #ffffff;
-  border: 1.5px solid #cde4c8;
-  border-radius: 1.25rem;
-  box-shadow: 0 10px 28px rgba(13, 38, 22, 0.05);
+  border: 1px solid #e2ebe5;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(11, 31, 22, 0.04), 0 6px 20px rgba(11, 31, 22, 0.02);
 }
 
-.mint-card-surface {
-  background: linear-gradient(135deg, #98ee70 0%, #7ad950 100%);
-  border: 2px solid #15803d;
-  border-radius: 1.35rem;
-  box-shadow: 0 18px 36px rgba(21, 128, 61, 0.2);
+.vault-card-metal {
+  background:
+    radial-gradient(120% 100% at 92% 8%, rgba(16, 185, 129, 0.22), transparent 55%),
+    linear-gradient(140deg, #0d261c 0%, #133628 58%, #0b1f16 100%);
+  border: 1px solid rgba(110, 231, 183, 0.25);
+  border-radius: 20px;
+  box-shadow: 0 18px 38px rgba(11, 31, 22, 0.16);
 }

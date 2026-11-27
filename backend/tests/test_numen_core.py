@@ -276,3 +276,16 @@ def test_mandate_tamper_verify_endpoint(temp_db):
         assert body["original_valid"] is True
         assert body["tampered_valid"] is False
         assert body["algorithm"] == "Ed25519 + SHA-256"
+
+
+def test_a2a_agent_card_endpoint(temp_db):
+    with TestClient(app) as client:
+        res = client.get("/.well-known/agent.json")
+        assert res.status_code == 200
+        card = res.json()
+        assert card["name"] == "Numen"
+        assert "MCP/2025-03-26" in card["protocols"]
+        assert len(card["clusters"]) == 3
+        assert card["endpoints"]["mcp"] == "/mcp"
+        skill_ids = [s["id"] for s in card["skills"]]
+        assert "request_scoped_card" in skill_ids
