@@ -525,3 +525,66 @@ def test_stripe_issuing_jit_webhook_and_tolerance_band(temp_db):
         assert replay_resp.status_code == 200
         assert replay_resp.json()["approved"] is False
         assert replay_resp.json()["metadata"]["reason_code"] == "CARD_SHREDDED"
+
+
+def test_a2a_tasks_send_multi_vendor_arbitrage(temp_db):
+    with TestClient(app) as client:
+        card_res = client.get("/.well-known/agent.json")
+        assert card_res.json()["endpoints"]["a2a"] == "/a2a"
+
+        a2a_payload = {
+            "jsonrpc": "2.0",
+            "id": "a2a-neg-1",
+            "method": "tasks/send",
+            "params": {
+                "id": "task_gpu_arbitrage",
+                "message": {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "type": "data",
+                            "data": {
+                                "action": "negotiate_and_pay",
+                                "agent_id": "agent-devops",
+                                "vendor_quotes": [
+                                    {
+                                        "merchant_name": "AWS EC2",
+                                        "merchant_domain": "aws.amazon.com",
+                                        "merchant_mcc": "CLOUD",
+                                        "amount_inr": 4100.0,
+                                        "cart_items": ["2x A100 Spot"],
+                                        "agent_reasoning": "AWS spot quote",
+                                    },
+                                    {
+                                        "merchant_name": "RunPod Spoof",
+                                        "merchant_domain": "runp0d.io",
+                                        "merchant_mcc": "CLOUD",
+                                        "amount_inr": 2800.0,
+                                        "cart_items": ["2x A100 Spot"],
+                                        "agent_reasoning": "Cheapest quote",
+                                    },
+                                    {
+                                        "merchant_name": "RunPod Cloud",
+                                        "merchant_domain": "runpod.io",
+                                        "merchant_mcc": "CLOUD",
+                                        "amount_inr": 3400.0,
+                                        "cart_items": ["2x A100 Spot"],
+                                        "agent_reasoning": "Verified vendor quote",
+                                    },
+                                ],
+                            },
+                        }
+                    ],
+                },
+            },
+        }
+        res = client.post("/a2a", json=a2a_payload)
+        assert res.status_code == 200
+        task = res.json()["result"]
+        assert task["status"]["state"] == "completed"
+        artifact_data = task["artifacts"][0]["parts"][0]["data"]
+        assert len(artifact_data["rejected_quotes"]) == 1
+        assert artifact_data["rejected_quotes"][0]["merchant_domain"] == "runp0d.io"
+        assert artifact_data["selected_quote"]["merchant_domain"] == "runpod.io"
+        assert artifact_data["evaluation"]["decision"] == "MINTED"
+        assert artifact_data["evaluation"]["virtual_card"]["exact_amount_inr"] == 3400.0

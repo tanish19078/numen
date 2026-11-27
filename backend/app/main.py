@@ -16,6 +16,9 @@ from fastapi.staticfiles import StaticFiles
 
 from . import crypto_ap2, db, sandbox_mint
 from .agents.a2a import broadcaster
+from .agents.attriguard import evaluate_attriguard
+from .agents.camel_capabilities import evaluate_camel_capabilities
+from .agents.fineprint_auditor import evaluate_fineprint
 from .agents.orchestrator import evaluate_spend_request, mint_after_passkey_approval
 from .config import get_settings
 from .models import (
@@ -86,9 +89,11 @@ def agent_card() -> dict[str, Any]:
             "passkey_hitl": True,
         },
         "endpoints": {
+            "a2a": "/a2a",
             "mcp": "/mcp",
             "evaluate": "/api/spend/evaluate",
             "charge": "/api/cards/{card_id}/charge",
+            "stripe_jit_webhook": "/api/webhooks/stripe-issuing",
             "stream": "/api/stream",
             "health": "/api/health",
         },
@@ -367,6 +372,146 @@ async def mcp_endpoint(request: Request):
     return JSONResponse(content=handle_mcp_rpc(body))
 
 
+@app.post("/a2a")
+async def a2a_endpoint(request: Request):
+    """Google A2A JSON-RPC 2.0 endpoint (`tasks/send`) supporting Multi-Vendor Quote Arbitrage -> AP2 Card Mint."""
+    body = await request.json()
+    req_id = body.get("id")
+    method = body.get("method")
+    params = body.get("params") or {}
+
+    if method != "tasks/send":
+        return JSONResponse(
+            content={
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "error": {"code": -32601, "message": f"Unsupported A2A method '{method}'. Expected 'tasks/send'."},
+            }
+        )
+
+    task_id = params.get("id") or f"task_{int(datetime.now(timezone.utc).timestamp())}"
+    parts = ((params.get("message") or {}).get("parts")) or []
+    data_payload: dict[str, Any] = {}
+    for p in parts:
+        if isinstance(p, dict) and p.get("type") == "data" and isinstance(p.get("data"), dict):
+            data_payload = p["data"]
+            break
+
+    if not data_payload:
+        return JSONResponse(
+            content={"jsonrpc": "2.0", "id": req_id, "error": {"code": -32602, "message": "Missing message part of type 'data'."}}
+        )
+
+    if data_payload.get("action") == "negotiate_and_pay":
+        agent_id = data_payload.get("agent_id", "agent-devops")
+        quotes = list(data_payload.get("vendor_quotes") or [])
+        agent = db.get_agent(agent_id)
+        mandate = db.get_intent_mandate(agent.intent_mandate_id) if agent else None
+        if not agent or not mandate:
+            return JSONResponse(
+                content={"jsonrpc": "2.0", "id": req_id, "error": {"code": -32602, "message": f"Unknown agent/mandate for '{agent_id}'"}}
+            )
+
+        sorted_quotes = sorted(quotes, key=lambda q: float(q.get("amount_inr", 1e18)))
+        rejected_quotes: list[dict[str, Any]] = []
+        selected_quote: dict[str, Any] | None = None
+
+        for q in sorted_quotes:
+            cand_req = SpendRequest(agent_id=agent_id, **q)
+            camel_res = evaluate_camel_capabilities(mandate, cand_req)
+            attri_res = evaluate_attriguard(mandate, cand_req)
+            fp_res = evaluate_fineprint(mandate, cand_req)
+
+            reasons: list[str] = []
+            if fp_res.spoofed_domain_of:
+                reasons.append(f"SPOOFED_DOMAIN (impersonates {fp_res.spoofed_domain_of})")
+            if attri_res.drift_score >= get_settings().drift_threshold:
+                reasons.append(f"CAUSAL_DRIFT ({attri_res.drift_score:.2f})")
+            if not camel_res.control_data_isolated:
+                reasons.extend(camel_res.violations)
+            if fp_res.has_trap and not fp_res.spoofed_domain_of:
+                reasons.append(f"RECURRING_TRAP (INR {fp_res.hidden_annual_inr:,.0f}/yr)")
+
+            if reasons:
+                rejected_entry = {
+                    "merchant_name": q.get("merchant_name"),
+                    "merchant_domain": q.get("merchant_domain"),
+                    "amount_inr": q.get("amount_inr"),
+                    "rejection_reasons": reasons,
+                }
+                rejected_quotes.append(rejected_entry)
+                broadcaster.publish_sync({"type": "a2a_quote_rejected", "data": rejected_entry})
+            else:
+                selected_quote = q
+                break
+
+        if not selected_quote:
+            return JSONResponse(
+                content={
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {
+                        "id": task_id,
+                        "status": {"state": "failed"},
+                        "artifacts": [
+                            {
+                                "name": "a2a_negotiation_rejected",
+                                "parts": [{"type": "data", "data": {"selected_quote": None, "rejected_quotes": rejected_quotes, "evaluation": None}}],
+                            }
+                        ],
+                    },
+                }
+            )
+
+        winning_eval = evaluate_spend_request(SpendRequest(agent_id=agent_id, **selected_quote))
+        state_map = {"MINTED": "completed", "PASSKEY_REQUIRED": "input-required", "BLOCKED": "failed"}
+        return JSONResponse(
+            content={
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "id": task_id,
+                    "status": {"state": state_map.get(winning_eval.decision, "failed")},
+                    "artifacts": [
+                        {
+                            "name": "a2a_negotiation_and_ap2_settlement",
+                            "parts": [
+                                {
+                                    "type": "data",
+                                    "data": {
+                                        "selected_quote": selected_quote,
+                                        "rejected_quotes": rejected_quotes,
+                                        "evaluation": winning_eval.model_dump(),
+                                    },
+                                }
+                            ],
+                        }
+                    ],
+                },
+            }
+        )
+
+    # Direct single SpendRequest fallback over A2A tasks/send
+    try:
+        ev = evaluate_spend_request(SpendRequest(**data_payload))
+    except ValueError as exc:
+        return JSONResponse(
+            content={"jsonrpc": "2.0", "id": req_id, "error": {"code": -32602, "message": str(exc)}}
+        )
+    state_map = {"MINTED": "completed", "PASSKEY_REQUIRED": "input-required", "BLOCKED": "failed"}
+    return JSONResponse(
+        content={
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "id": task_id,
+                "status": {"state": state_map.get(ev.decision, "failed")},
+                "artifacts": [{"name": "a2a_spend_evaluation", "parts": [{"type": "data", "data": ev.model_dump()}]}],
+            },
+        }
+    )
+
+
 # Serve compiled React SPA from frontend/dist when present
 _FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 if _FRONTEND_DIST.exists() and (_FRONTEND_DIST / "index.html").exists():
@@ -376,7 +521,7 @@ if _FRONTEND_DIST.exists() and (_FRONTEND_DIST / "index.html").exists():
 
     @app.get("/{full_path:path}")
     def serve_spa(full_path: str):
-        if full_path.startswith(("api/", "mcp")):
+        if full_path.startswith(("api/", "mcp", "a2a")):
             raise HTTPException(status_code=404, detail="Not found")
         candidate = _FRONTEND_DIST / full_path
         if full_path and candidate.is_file():
