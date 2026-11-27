@@ -92,6 +92,7 @@ class SpendRequest(BaseModel):
     untrusted_dom_html: str = ""
     checkout_terms_text: str = ""
     idempotency_key: str | None = None
+    dom_attestation_hmac: str | None = None
 
 
 class CreateIntentMandateRequest(BaseModel):

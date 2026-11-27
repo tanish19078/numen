@@ -160,6 +160,38 @@ def _evaluate_spend_uncached(
             (time.perf_counter() - t_cam) * 1000,
         )
     )
+    if camel_res.capability_checks.get("CAP_DOM_ATTESTATION") is False:
+        db.set_agent_status(agent.agent_id, "PAUSED", db_path=db_path)
+        db.record_audit_event(
+            trace_id,
+            agent.agent_id,
+            "DOM_ATTESTATION_BLOCK",
+            "BLOCKED",
+            "Blocked checkout: invalid or missing sidecar DOM attestation HMAC.",
+            {"violations": camel_res.violations},
+            db_path=db_path,
+        )
+        return EvaluationResponse(
+            trace_id=trace_id,
+            decision="BLOCKED",
+            summary="CaMeL CAP_DOM_ATTESTATION failed: untrusted DOM signature invalid or missing.",
+            model_used=model_used,
+            routing_reason=routing_reason,
+            latency_ms=round((time.perf_counter() - t_start) * 1000, 2),
+            ap2_verified=ap2_ok,
+            attriguard=AttriGuardResult(
+                drift_score=1.0,
+                world_a_action="Halted at CaMeL DOM attestation check",
+                world_b_action="Require valid sidecar DOM HMAC",
+                injection_detected=True,
+                explanation="DOM telemetry integrity check failed.",
+            ),
+            fineprint=FinePrintResult(has_trap=False),
+            budget=budget,
+            camel_provenance=camel_res,
+            a2a_trace=a2a_trace,
+            legacy_static_card_verdict=_legacy_verdict(spend_req.amount_inr),
+        )
 
     # 5. AttriGuard Counterfactual Prompt-Injection Firewall
     t3 = time.perf_counter()

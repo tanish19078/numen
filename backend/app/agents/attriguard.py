@@ -1,17 +1,25 @@
-"""AttriGuard Counterfactual Firewall (arXiv:2603.10749) & Dual Tool Sanitizer (arXiv:2510.05244)."""
+"""AttriGuard Counterfactual Firewall (arXiv:2603.10749) & Hardened Dual Tool Sanitizer (arXiv:2510.05244)."""
 
 from __future__ import annotations
 
+import html
 import re
+import unicodedata
 from typing import Any
 
 from ..models import AttriGuardResult, IntentMandate, SpendRequest
 
+_ZERO_WIDTH_RE = re.compile(r"[\u200b\u200c\u200d\ufeff\u00ad]+")
+
 # Hidden CSS / HTML-comment / obfuscation patterns
 _HIDDEN_CSS_PATTERNS = [
-    re.compile(r"<[^>]+style\s*=\s*[\"'][^\"']*(?:opacity\s*:\s*0|display\s*:\s*none|visibility\s*:\s*hidden|font-size\s*:\s*0|color\s*:\s*(?:#fff(?:fff)?|white)|left\s*:\s*-\d{3,}px)[^\"']*[\"'][^>]*>(.*?)</[^>]+>", re.IGNORECASE | re.DOTALL),
+    re.compile(
+        r"<[^>]+style\s*=\s*[\"'][^\"']*(?:opacity\s*:\s*0|display\s*:\s*none|visibility\s*:\s*hidden|"
+        r"font-size\s*:\s*0|height\s*:\s*0|width\s*:\s*0|clip\s*:\s*rect\(\s*0|text-indent\s*:\s*-\d{3,}px|"
+        r"color\s*:\s*(?:#fff(?:fff)?|white)|(?:left|top)\s*:\s*-\d{3,}px)[^\"']*[\"'][^>]*>(.*?)</[^>]+>",
+        re.IGNORECASE | re.DOTALL,
+    ),
     re.compile(r"<!--(.*?)-->", re.IGNORECASE | re.DOTALL),
-    re.compile(r"[\u200b\u200c\u200d\ufeff]+"),
 ]
 
 _HIJACK_DIRECTIVES = [
@@ -25,19 +33,34 @@ _HIJACK_DIRECTIVES = [
 ]
 
 
+def normalize_untrusted_text(raw: str) -> str:
+    """Defeat HTML entity encoding, full-width NFKC homoglyphs, and zero-width char splitting."""
+    if not raw:
+        return ""
+    unescaped = html.unescape(raw)
+    nfkc = unicodedata.normalize("NFKC", unescaped)
+    return _ZERO_WIDTH_RE.sub("", nfkc)
+
+
 def extract_poisoned_spans(dom_html: str) -> list[str]:
-    """Dual Tool Output Sanitizer: isolate hidden CSS, HTML comments, and imperative prompt-injection spans."""
+    """Dual Tool Output Sanitizer: isolate hidden CSS, zero-width obfuscation, comments & override directives."""
     if not dom_html:
         return []
     spans: list[str] = []
+
+    if _ZERO_WIDTH_RE.search(dom_html):
+        spans.append("[ZERO_WIDTH_UNICODE_OBFUSCATION_DETECTED]")
+
+    normalized = normalize_untrusted_text(dom_html)
+
     for pat in _HIDDEN_CSS_PATTERNS:
-        for m in pat.finditer(dom_html):
+        for m in pat.finditer(normalized):
             snippet = m.group(0).strip()
             if snippet and snippet not in spans:
                 spans.append(snippet[:280])
 
     for pat in _HIJACK_DIRECTIVES:
-        for m in pat.finditer(dom_html):
+        for m in pat.finditer(normalized):
             snippet = m.group(0).strip()
             if snippet and not any(snippet in existing for existing in spans):
                 spans.append(snippet[:280])
@@ -54,13 +77,14 @@ def evaluate_attriguard(
     Returns drift_score in [0.0, 1.0] plus exact highlighted poisoned DOM spans.
     """
     poisoned_spans = extract_poisoned_spans(spend_req.untrusted_dom_html)
-    combined_untrusted = f"{spend_req.merchant_name} {spend_req.merchant_domain} {' '.join(spend_req.cart_items)} {spend_req.agent_reasoning}".lower()
+    norm_reasoning = normalize_untrusted_text(spend_req.agent_reasoning or "")
+    combined_untrusted = f"{spend_req.merchant_name} {spend_req.merchant_domain} {' '.join(spend_req.cart_items)} {norm_reasoning}".lower()
 
     matched_prohibited = [kw for kw in mandate.prohibited_keywords if kw in combined_untrusted]
     mcc_allowed = spend_req.merchant_mcc.upper() in {m.upper() for m in mandate.allowed_mccs}
 
-    # Check if agent reasoning echoes adversarial override phrasing
-    reasoning_hijacked = any(pat.search(spend_req.agent_reasoning or "") for pat in _HIJACK_DIRECTIVES)
+    # Check if normalized agent reasoning echoes adversarial override phrasing
+    reasoning_hijacked = any(pat.search(norm_reasoning) for pat in _HIJACK_DIRECTIVES)
 
     drift = 0.0
     reasons: list[str] = []
