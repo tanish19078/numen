@@ -1,4 +1,4 @@
-"""FastAPI application entrypoint for Numen — REST API, SSE stream, MCP server, and SPA host."""
+"""FastAPI application entrypoint for Numen — REST API, SSE stream, MCP server, A2A & Stripe JIT webhooks."""
 
 from __future__ import annotations
 
@@ -6,13 +6,11 @@ import asyncio
 import json
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from . import crypto_ap2, db, sandbox_mint
 from .agents.a2a import broadcaster
@@ -512,18 +510,23 @@ async def a2a_endpoint(request: Request):
     )
 
 
-# Serve compiled React SPA from frontend/dist when present
-_FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
-if _FRONTEND_DIST.exists() and (_FRONTEND_DIST / "index.html").exists():
-    assets_dir = _FRONTEND_DIST / "assets"
-    if assets_dir.exists():
-        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend_assets")
-
-    @app.get("/{full_path:path}")
-    def serve_spa(full_path: str):
-        if full_path.startswith(("api/", "mcp", "a2a")):
-            raise HTTPException(status_code=404, detail="Not found")
-        candidate = _FRONTEND_DIST / full_path
-        if full_path and candidate.is_file():
-            return FileResponse(str(candidate))
-        return FileResponse(str(_FRONTEND_DIST / "index.html"))
+@app.get("/")
+def api_root() -> dict[str, Any]:
+    """Pure backend service root listing active discovery, protocol, ledger, and webhook endpoints."""
+    return {
+        "service": "Numen — Layer-2 Agentic Spend Control & AP2 Issuing Backend",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "endpoints": {
+            "a2a_card": "/.well-known/agent.json",
+            "a2a_rpc": "/a2a",
+            "mcp_rpc": "/mcp",
+            "health": "/api/health",
+            "evaluate": "/api/spend/evaluate",
+            "charge": "/api/cards/{card_id}/charge",
+            "stripe_jit_webhook": "/api/webhooks/stripe-issuing",
+            "ledger_entries": "/api/ledger/entries",
+            "audit_verify_chain": "/api/audit/verify-chain",
+            "stream": "/api/stream",
+        },
+    }

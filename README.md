@@ -33,8 +33,8 @@ numen/
 │   │   ├── scenarios.py              # Demo scenarios & 240-case verification suite
 │   │   ├── issuers/                  # Pluggable IssuingAdapter, Sandbox & Stripe Issuing JIT adapter
 │   │   └── agents/                   # Orchestrator, Budget/Loop, CaMeL, AttriGuard, FinePrint & A2A bus
-│   └── tests/test_numen_core.py      # End-to-end backend cryptographic, ledger, firewall & protocol tests
-└── frontend/                         # React + Vite Treasury & Control Plane UI
+│   └── tests/test_numen_core.py      # 15/15 unit, crypto, ledger, firewall, issuer, MCP & A2A tests
+└── .env.example                      # Environment config template
 ```
 
 ---
@@ -46,3 +46,5 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest -v tests\test_numen_core.py
 .\.venv\Scripts\uvicorn.exe app.main:app --host 127.0.0.1 --port 8000
 ```
+
+Interactive OpenAPI documentation is available at `http://127.0.0.1:8000/docs`.
