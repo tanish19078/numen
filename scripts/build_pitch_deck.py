@@ -1,10 +1,12 @@
 """
-Numen 9-Slide Editorial Pitch Deck Generator & Automated Craft Auditor
-----------------------------------------------------------------------
-Synced with docs/NUMEN_MASTER_DECK_BRIEF.md & DESIGN.md:
-- Floats exact peer-reviewed metrics (AgentDojo, CaMeL, Dual Firewalls, AttriGuard, McKinsey, Gartner)
-- Visualizes the 3-Cluster Agentic Quorum architecture
-- Keeps every slide <= 90 words total with >= 13pt body text and zero bounds violations
+Numen 9-Slide Fintech-First Pitch Deck Generator & Automated Craft Auditor
+-------------------------------------------------------------------------
+Layer-2 Fintech Positioning ("The Ramp + Stripe Radar Control Layer for AI Agents"):
+- Slides 1-9 synced with DESIGN.md and docs/NUMEN_PITCH_AND_GUIDE.md
+- Floats exact verified figures (McKinsey $3T-$5T, Gartner 90%/$15T, AgentDojo 55.0%,
+  DeepMind CaMeL 77%/67%, Dual Firewalls ~0% ASR, AttriGuard 0% ASR/~3% drop)
+- Dedicated Slide 08 for Zero-Charter Feasibility & 3-Stream Business Model
+- Strict bounds + <= 95 body-word audit per slide
 """
 
 from __future__ import annotations
@@ -59,9 +61,9 @@ class EditorialSlide:
 
         eyebrow_col = C_CARD_MINT if dark else C_EMERALD
         foot_col = (148, 178, 164) if dark else C_STONE
-        self.text(eyebrow, 0.65, 0.44, 6.5, 0.28, size=10.5, bold=True, font="Consolas", color=eyebrow_col, tag="__chrome__")
+        self.text(eyebrow, 0.65, 0.44, 6.8, 0.28, size=10.5, bold=True, font="Consolas", color=eyebrow_col, tag="__chrome__")
         self.text(f"0{num} / 09", 11.40, 6.96, 1.28, 0.28, size=10.0, bold=True, font="Consolas", color=foot_col, align="right", tag="__chrome__")
-        self.text("NUMEN  ·  3-CLUSTER AP2 NEOBANK & SPEND FIREWALL", 0.65, 6.96, 7.2, 0.28, size=9.5, font="Consolas", color=foot_col, tag="__chrome__")
+        self.text("NUMEN  ·  LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND", 0.65, 6.96, 7.6, 0.28, size=9.5, font="Consolas", color=foot_col, tag="__chrome__")
 
         prog_w = 12.03 * (num / 9.0)
         self.rect(0.65, 6.84, 12.03, 0.03, fill=(30, 66, 51) if dark else C_LINE, border=None, rounded=False, tag="__chrome__")
@@ -206,7 +208,7 @@ class EditorialSlide:
 def audit_deck(prs: Presentation) -> None:
     max_x, max_y = 12.98, 7.28
     min_x, min_y = 0.35, 0.25
-    print("\n--- PITCH DECK QUALITY AUDIT ---")
+    print("\n--- FINTECH PITCH DECK QUALITY AUDIT ---")
     for idx, slide in enumerate(prs.slides, start=1):
         words = 0
         for shp in slide.shapes:
@@ -232,19 +234,19 @@ def build_deck(out_path: str) -> None:
     prs.slide_width = Inches(SLIDE_W)
     prs.slide_height = Inches(SLIDE_H)
 
-    # SLIDE 1 — HERO ASYMMETRIC SPLIT
-    s = EditorialSlide(prs, 1, "NUMEN  /  AGENTIC TREASURY OS")
+    # SLIDE 1 — HERO ASYMMETRIC SPLIT (FINTECH LAYER-2 POSITIONING)
+    s = EditorialSlide(prs, 1, "NUMEN  /  FINTECH FOR AGENTIC COMMERCE")
     s.morph()
-    s.pill(0.65, 1.30, 3.85, 0.34, "3-CLUSTER AP2 SPEND FIREWALL", C_MINT_WASH, C_EMERALD, border=C_MINT_BORDER, size=10.0)
+    s.pill(0.65, 1.30, 4.10, 0.34, "PROGRAMMABLE AGENT ISSUER LAYER", C_MINT_WASH, C_EMERALD, border=C_MINT_BORDER, size=10.0)
     s.text("Numen", 0.65, 1.85, 5.4, 0.96, size=56, bold=True, font="Bahnschrift", color=C_PINE)
-    s.text("Verify why an AI agent wants to spend — before minting the card.", 0.65, 2.95, 5.6, 1.05, size=22, bold=True, color=C_EMERALD, spacing=1.18)
-    s.text("Agent sub-accounts, causal injection defense, and 60-second exact-rupee virtual cards.", 0.65, 4.22, 5.4, 0.80, size=14, color=C_SAGE)
+    s.text("The Ramp + Stripe Radar control layer for AI agent spend.", 0.65, 2.95, 5.6, 1.05, size=22, bold=True, color=C_EMERALD, spacing=1.18)
+    s.text("Sub-accounts, pre-authorization fraud checks, and 60-second exact-rupee virtual cards.", 0.65, 4.22, 5.4, 0.80, size=14, color=C_SAGE)
     s.pill(0.65, 5.55, 2.55, 0.38, "Google AP2 + MCP + A2A", C_WHITE, C_PINE, border=C_LINE, size=10.0)
-    s.pill(3.35, 5.55, 2.75, 0.38, "CaMeL + AttriGuard Quorum", C_WHITE, C_PINE, border=C_LINE, size=10.0)
+    s.pill(3.35, 5.55, 2.75, 0.38, "60s Exact-Rupee Cards", C_WHITE, C_PINE, border=C_LINE, size=10.0)
 
     s.rect(7.05, 1.48, 5.55, 1.18, fill=C_WHITE, border=C_LINE, radius=0.10)
-    s.text("OPERATING VAULT", 7.35, 1.65, 2.4, 0.25, size=10, bold=True, font="Consolas", color=C_SAGE)
-    s.text("Acme AI Labs · 3 Agents", 7.35, 1.98, 2.8, 0.36, size=13.5, bold=True, color=C_PINE)
+    s.text("OPERATING TREASURY VAULT", 7.35, 1.65, 2.8, 0.25, size=10, bold=True, font="Consolas", color=C_SAGE)
+    s.text("Acme AI Labs · 3 Sub-Accounts", 7.35, 1.98, 2.9, 0.36, size=13.5, bold=True, color=C_PINE)
     s.text("₹18,40,000", 10.10, 1.78, 2.25, 0.45, size=22, bold=True, font="Bahnschrift", color=C_PINE, align="right")
 
     s.rect(6.95, 3.02, 5.65, 2.52, fill=C_DARK_PINE, border=C_EMERALD, border_pt=1.4, radius=0.10)
@@ -253,54 +255,54 @@ def build_deck(out_path: str) -> None:
     s.rect(7.30, 3.84, 0.56, 0.36, fill=(36, 79, 61), border=C_CARD_MINT, border_pt=1.0, radius=0.18)
     s.text("EXACT LOCK: ₹3,400.00", 9.65, 3.88, 2.65, 0.30, size=10.5, bold=True, font="Consolas", color=C_CARD_MINT, align="right")
     s.text("4532   8910   4402   9104", 7.30, 4.38, 4.95, 0.40, size=19, bold=True, font="Consolas", color=C_WHITE)
-    s.text("DEVOPS-AGENT  ·  RUNPOD CLOUD  ·  SINGLE-USE", 7.30, 4.96, 4.95, 0.30, size=10.5, font="Consolas", color=(184, 217, 200))
+    s.text("DEVOPS-AGENT  ·  RUNPOD CLOUD  ·  AUTO-SHREDS", 7.30, 4.96, 4.95, 0.30, size=10.5, font="Consolas", color=(184, 217, 200))
 
-    s.pill(7.05, 5.82, 2.70, 0.42, "Quorum Drift: 0.00 (Clean)", C_MINT_WASH, C_EMERALD, border=C_MINT_BORDER, size=10.0)
+    s.pill(7.05, 5.82, 2.70, 0.42, "Pre-Auth: Verified", C_MINT_WASH, C_EMERALD, border=C_MINT_BORDER, size=10.0)
     s.pill(9.92, 5.82, 2.68, 0.42, "Post-Settle Bleed: ₹0.00", C_SUBTLE, C_PINE, border=C_LINE, size=10.0)
-    s.notes("SLIDE 1: Meet Numen—a 3-Cluster Agentic Quorum that verifies why an AI agent wants to spend before minting a 60-second exact-rupee card.")
+    s.notes("SLIDE 1: Numen is the Ramp + Stripe Radar control layer for AI agent spend—governing treasury sub-accounts and 60-second exact-rupee virtual cards.")
 
-    # SLIDE 2 — VERIFIED MACRO + AGENTDOJO DATA STRIP
-    s = EditorialSlide(prs, 2, "01 / VERIFIED PROBLEM & MARKET DATA")
+    # SLIDE 2 — MACRO DATA + 4-LAYER PAYMENTS STACK (OWNING LAYER 2)
+    s = EditorialSlide(prs, 2, "01 / MARKET & THE 4-LAYER STACK")
     s.morph()
     s.headline(
-        "Agents drive $3T–$15T in spend — on rails where banking ASR hits 55%.",
-        "Payment protocols standardize checkout transport, not pre-checkout intent.",
+        "Agents drive $3T–$15T in spend — we own the issuer choke point.",
+        "Banking rails miss agent hijacks; agent specs do not stop them.",
     )
 
     kpis = [
-        ("$3T – $5T", "Agent commerce by 2030", "McKinsey · up to $1T U.S. B2C", C_EMERALD),
-        ("90% / $15T", "B2B buying via AI by 2028", "Gartner enterprise forecast", C_COBALT),
-        ("55.0% ASR", "Banking hijacks (79 / 144)", "AgentDojo GPT-4o (2406.13352)", C_THREAT),
+        ("$3T – $5T", "Agent commerce by 2030", "McKinsey ($1T U.S. B2C)", C_EMERALD),
+        ("90% / $15T", "B2B via AI by 2028", "Gartner B2B forecast", C_COBALT),
+        ("55.0% ASR", "Banking hijacks (79/144)", "AgentDojo GPT-4o (NeurIPS)", C_THREAT),
     ]
     for i, (num, head, src, col) in enumerate(kpis):
         kx = 0.65 + i * 4.15
         if i > 0:
-            s.rect(kx - 0.22, 2.45, 0.015, 2.15, fill=C_LINE, border=None, rounded=False)
-        s.text(num, kx, 2.45, 3.70, 0.72, size=38, bold=True, font="Bahnschrift", color=col)
-        s.text(head, kx, 3.28, 3.70, 0.42, size=15, bold=True, color=C_PINE)
-        s.text(src, kx, 3.78, 3.70, 0.56, size=13, color=C_SAGE)
+            s.rect(kx - 0.22, 2.40, 0.015, 2.00, fill=C_LINE, border=None, rounded=False)
+        s.text(num, kx, 2.40, 3.70, 0.68, size=38, bold=True, font="Bahnschrift", color=col)
+        s.text(head, kx, 3.18, 3.70, 0.40, size=15, bold=True, color=C_PINE)
+        s.text(src, kx, 3.64, 3.70, 0.50, size=13, color=C_SAGE)
 
-    s.rect(0.65, 5.02, 12.03, 1.48, fill=C_WHITE, border=C_LINE, radius=0.08)
-    s.text("PAYMENT RAILS (AP2 · ACP · x402) LEAVE PRE-CHECKOUT INTENT UNGUARDED", 0.92, 5.18, 11.4, 0.28, size=10.0, bold=True, font="Consolas", color=C_SAGE)
+    s.rect(0.65, 4.88, 12.03, 1.62, fill=C_WHITE, border=C_LINE, radius=0.08)
+    s.text("4-LAYER AGENTIC PAYMENTS STACK (NUMEN OWNS LAYER 2)", 0.92, 5.04, 11.4, 0.26, size=10.0, bold=True, font="Consolas", color=C_EMERALD)
     layers = [
-        ("AUTHORIZATION", "Google AP2 (100+ partners)", C_MINT_WASH, C_EMERALD),
-        ("CHECKOUT", "Stripe ACP · Visa TAP", C_COBALT_WASH, C_COBALT),
-        ("SETTLEMENT", "Virtual PANs · x402", C_SUBTLE, C_PINE),
-        ("MISSING LAYER", "Numen Causal Quorum", C_THREAT_WASH, C_THREAT),
+        ("L4: AGENTS", "Claude, Cursor, ADK", C_SUBTLE, C_SAGE, False),
+        ("L3: SPECS", "A2A, MCP, AP2, ACP", C_COBALT_WASH, C_COBALT, False),
+        ("L2: NUMEN", "Issuer & Spend Firewall", C_MINT_WASH, C_EMERALD, True),
+        ("L1: RAILS", "Visa, Stripe, RazorpayX", C_SUBTLE, C_PINE, False),
     ]
-    for i, (lk, lt, bgc, col) in enumerate(layers):
+    for i, (lk, lt, bgc, col, hl) in enumerate(layers):
         lx = 0.92 + i * 2.92
-        s.rect(lx, 5.56, 2.72, 0.74, fill=bgc, border=col, border_pt=1.0, radius=0.12)
-        s.text(lk, lx + 0.14, 5.63, 2.44, 0.22, size=9.2, bold=True, font="Consolas", color=col)
-        s.text(lt, lx + 0.14, 5.88, 2.44, 0.34, size=12.5, bold=True, color=C_PINE)
-    s.notes("SLIDE 2: McKinsey ($3T-$5T) and Gartner (90%/$15T) quantify the wave, while AgentDojo measures 55.0% Banking Suite ASR on undefended GPT-4o.")
+        s.rect(lx, 5.44, 2.72, 0.84, fill=bgc, border=col, border_pt=1.8 if hl else 0.9, radius=0.12)
+        s.text(lk, lx + 0.14, 5.52, 2.44, 0.24, size=9.5, bold=True, font="Consolas", color=col)
+        s.text(lt, lx + 0.14, 5.80, 2.44, 0.36, size=13, bold=True, color=C_PINE)
+    s.notes("SLIDE 2: Layer 4 builds AI models, Layer 3 handles A2A/MCP/AP2, and Layer 1 settles Visa/Stripe. Numen owns Layer 2—the issuer choke point.")
 
-    # SLIDE 3 — TIGHTENED VISUAL ASYMMETRY SPLIT (<85 words)
-    s = EditorialSlide(prs, 3, "02 / THE STRUCTURAL FLAW")
+    # SLIDE 3 — THE FINTECH PROBLEM: SUB-LIMIT FRAUD & TRAPS
+    s = EditorialSlide(prs, 3, "02 / WHY STATIC CORPORATE CARDS FAIL")
     s.morph()
     s.headline(
         "A ₹10,000 spend cap approves a ₹4,200 theft unless the bank checks why.",
-        "Hidden CSS injections strike below the card limit before checkout.",
+        "Prompt injections, phished links & annual traps strike below static limits.",
     )
 
     s.rect(0.65, 2.38, 3.65, 4.05, fill=C_THREAT_WASH, border=C_THREAT_BORDER, border_pt=1.2, radius=0.08)
@@ -309,58 +311,34 @@ def build_deck(out_path: str) -> None:
     s.text("Hidden <span opacity:0>\nhijacks voucher spend.", 0.88, 4.30, 3.15, 1.1, size=14, color=C_THREAT)
 
     s.rect(4.55, 2.38, 3.85, 4.05, fill=C_MINT_WASH, border=C_MINT_BORDER, border_pt=1.2, radius=0.08)
-    s.pill(4.78, 2.60, 2.45, 0.32, "NUMEN QUORUM", C_EMERALD, C_WHITE, size=10.0)
+    s.pill(4.78, 2.60, 2.45, 0.32, "NUMEN PRE-AUTH", C_EMERALD, C_WHITE, size=10.0)
     s.text("World A != World B\nCausal Drift: 1.00", 4.78, 3.16, 3.35, 0.85, size=16, bold=True, color=C_PINE)
     s.text("Cloud mandate rejects RETAIL;\nmint blocked, agent paused.", 4.78, 4.30, 3.35, 1.1, size=14, color=C_PINE)
 
     points = [
-        ("Issuer Choke Point", "100% of funds pass issuance before money moves."),
-        ("Sub-Limit Defense", "Stops DOM hijacks, runp0d.io spoofs & 3x loops."),
-        ("Fine-Print Control", "Holds ₹99 -> ₹36k/yr traps for 1-tap passkey."),
+        ("Treasury Choke Point", "100% of money crosses issuance pre-mint."),
+        ("Phishing & Loops", "Stops runp0d.io spoofs & 3x/60s retries."),
+        ("Fine-Print Defense", "Holds ₹99 -> ₹36k/yr traps via Passkey."),
     ]
     for i, (pt, pd) in enumerate(points):
         py = 2.42 + i * 1.38
         s.rect(8.72, py, 3.96, 1.18, fill=C_WHITE, border=C_LINE, radius=0.08)
         s.text(pt, 8.95, py + 0.16, 3.50, 0.32, size=14.5, bold=True, color=C_PINE)
         s.text(pd, 8.95, py + 0.52, 3.50, 0.56, size=13, color=C_SAGE)
-    s.notes("SLIDE 3: Static spend limits fail sub-limit prompt injections. Numen enforces counterfactual causality right at the card-issuing choke point.")
+    s.notes("SLIDE 3: Static spend caps fail sub-limit fraud. Numen stops hidden prompt injections, homoglyph phishing, and hidden annual clauses pre-mint.")
 
-    # SLIDE 4 — 3-CLUSTER AGENTIC ARCHITECTURE
-    s = EditorialSlide(prs, 4, "03 / 3-CLUSTER AGENTIC ARCHITECTURE")
+    # SLIDE 4 — 3-CLUSTER ARCHITECTURE (ZERO LLM CUSTODY)
+    s = EditorialSlide(prs, 4, "03 / 3-CLUSTER FINTECH ARCHITECTURE")
     s.morph()
     s.headline(
-        "Three isolated clusters separate untrusted browsing from deterministic custody.",
-        "External agents clear a 4-voter quorum before zero-LLM minting executes.",
+        "Three clusters isolate untrusted browsing from deterministic banking ledger custody.",
+        "No LLM ever signs mandates, generates card PANs, or mutates rupee balances.",
     )
 
     clusters = [
-        (
-            "CLUSTER 1 · EDGE",
-            "Commerce Agents",
-            "DevOps, Procurement & Research\n\n• /.well-known/agent.json\n• POST /mcp\n• Zero raw PAN custody",
-            C_WHITE,
-            C_PINE,
-            C_SAGE,
-            C_LINE,
-        ),
-        (
-            "CLUSTER 2 · QUORUM",
-            "4 Specialist Voters",
-            "Gemini 2.5 Flash / Pro Router\n\n• Budget & 3x/60s Loop\n• CaMeL Provenance\n• AttriGuard & FinePrint",
-            C_MINT_WASH,
-            C_PINE,
-            C_PINE,
-            C_EMERALD,
-        ),
-        (
-            "CLUSTER 3 · CUSTODY",
-            "Zero-LLM Vault",
-            "Deterministic Python Only\n\n• Ed25519 AP2 Mandates\n• 60s Luhn PAN (±₹0.00)\n• SQLite WAL & Shredder",
-            C_DARK_PINE,
-            C_WHITE,
-            (204, 232, 217),
-            C_EMERALD,
-        ),
+        ("CLUSTER 1 · EDGE", "Commerce Agents", "DevOps, Procurement & Research\n\n• A2A /.well-known/agent.json\n• Calls POST /mcp\n• Zero PAN custody", C_WHITE, C_PINE, C_SAGE, C_LINE),
+        ("CLUSTER 2 · QUORUM", "4 Pre-Auth Voters", "Gemini Flash / Pro Router\n\n• Budget & 3x Loop\n• CaMeL Provenance\n• AttriGuard & FinePrint", C_MINT_WASH, C_PINE, C_PINE, C_EMERALD),
+        ("CLUSTER 3 · VAULT", "Zero-LLM Custody", "Deterministic Python Only\n\n• Ed25519 AP2 Mandates\n• 60s Luhn PAN (±₹0.00)\n• ACID Ledger & Shredder", C_DARK_PINE, C_WHITE, (204, 232, 217), C_EMERALD),
     ]
     for i, (ck, ct, cb, bgc, tc, bc, bdc) in enumerate(clusters):
         cx = 0.65 + i * 4.18
@@ -370,14 +348,14 @@ def build_deck(out_path: str) -> None:
         s.text(cb, cx + 0.24, 3.55, 3.20, 2.45, size=13.5, color=bc, spacing=1.28)
         if i < 2:
             s.arrow_right(cx + 3.74, 4.22, 0.36, 0.24, C_EMERALD)
-    s.notes("SLIDE 4: Our 3-Cluster Agentic Architecture: Cluster 1 requests via MCP, Cluster 2 runs 4 consensus voters, and Cluster 3 executes deterministically without LLMs.")
+    s.notes("SLIDE 4: Strict neuro-symbolic separation: Cluster 2 runs 4 consensus voters; Cluster 3 handles Ed25519 signing, Luhn PAN minting, and ledger commits deterministically.")
 
-    # SLIDE 5 — EMPIRICAL RESEARCH BENCHMARKS TABLE
+    # SLIDE 5 — EMPIRICAL RESEARCH DATA FLOATED
     s = EditorialSlide(prs, 5, "04 / PEER-REVIEWED RESEARCH BASIS")
     s.morph()
     s.headline(
         "Empirical findings from four security papers compiled into one smart-routed quorum.",
-        "Smart Routing eliminates counterfactual latency overhead on trusted fast-path traffic.",
+        "Smart Routing avoids counterfactual overhead on clean cloud infrastructure.",
     )
 
     s.rect(0.65, 2.35, 12.03, 4.12, fill=C_WHITE, border=C_LINE, radius=0.08)
@@ -397,20 +375,20 @@ def build_deck(out_path: str) -> None:
         s.text(p_name, 0.92, ry + 0.04, 3.80, 0.56, size=13.5, bold=True, color=C_PINE, valign="middle")
         s.text(p_stat, 4.90, ry + 0.04, 4.20, 0.56, size=13, color=C_PINE, valign="middle")
         s.text(p_mod, 9.30, ry + 0.04, 3.10, 0.56, size=12.5, font="Consolas", color=C_EMERALD, valign="middle")
-    s.notes("SLIDE 5: Every layer maps to verified empirical numbers: AgentDojo 55% banking ASR, CaMeL 77% utility, Dual Firewalls ~0% static ASR, and AttriGuard 0% ASR with Smart Routing.")
+    s.notes("SLIDE 5: Every layer maps to verified empirical numbers from AgentDojo, DeepMind CaMeL, Dual Firewalls, and AttriGuard.")
 
-    # SLIDE 6 — CONCISE 3-ACT LIVE STORYBOARD (<85 words)
-    s = EditorialSlide(prs, 6, "05 / LIVE 3-ACT DEMO")
+    # SLIDE 6 — LIVE 3-ACT FINTECH DEMO STORYBOARD
+    s = EditorialSlide(prs, 6, "05 / LIVE STAGE DEMO")
     s.morph()
     s.headline(
-        "Three live scenarios prove fast minting, hijack defense, and passkey escalation.",
-        "Executed end-to-end inside the Spend Firewall workspace.",
+        "Three live scenarios prove exact-rupee cards, hijack defense & clause protection.",
+        "Interactive in our Treasury Console at http://127.0.0.1:8000.",
     )
 
     acts = [
-        ("ACT I · CLEAN INFRA", "RunPod GPU (₹3,400)", "Flash verifies mandate; mints 60s PAN.\n+₹1 declines; ₹3,400 settles & shreds.", "MINTED -> SHREDDED", C_EMERALD, C_MINT_WASH, C_MINT_BORDER),
-        ("ACT II · DOM HIJACK", "Gift Vouchers (₹4,200)", "Strips opacity:0 injection below ₹10k limit.\nDrift 1.00 blocks mint & pauses agent.", "BLOCKED (₹0 LOST)", C_THREAT, C_THREAT_WASH, C_THREAT_BORDER),
-        ("ACT III · CLAUSE TRAP", "₹99 Trial -> ₹36k/yr", "Exposes Clause 14.3 annual auto-debit.\n1-Tap Passkey denies or caps ₹99 once.", "PASSKEY ESCALATED", C_REVIEW, C_REVIEW_WASH, C_REVIEW_BORDER),
+        ("ACT I · EXACT-RUPEE MINT", "RunPod GPU (₹3,400)", "Flash approves mandate; mints 60s PAN.\n+₹1 declines; ₹3,400 settles & shreds.", "MINTED -> SHREDDED", C_EMERALD, C_MINT_WASH, C_MINT_BORDER),
+        ("ACT II · SUB-LIMIT HIJACK", "Gift Vouchers (₹4,200)", "Strips opacity:0 injection below ₹10k limit.\nDrift 1.00 blocks mint & pauses agent.", "BLOCKED (₹0 LOST)", C_THREAT, C_THREAT_WASH, C_THREAT_BORDER),
+        ("ACT III · SUBSCRIPTION TRAP", "₹99 Trial -> ₹36k/yr", "Exposes Clause 14.3 annual auto-debit.\n1-Tap Passkey denies or caps ₹99 once.", "PASSKEY ESCALATED", C_REVIEW, C_REVIEW_WASH, C_REVIEW_BORDER),
     ]
     for i, (ey, title, body, badge, col, bgc, bdc) in enumerate(acts):
         ax = 0.65 + i * 4.10
@@ -419,14 +397,14 @@ def build_deck(out_path: str) -> None:
         s.text(title, ax + 0.24, 2.98, 3.34, 0.42, size=17, bold=True, color=C_PINE)
         s.text(body, ax + 0.24, 3.65, 3.34, 1.75, size=14, color=C_SAGE, spacing=1.32)
         s.pill(ax + 0.24, 5.76, 3.34, 0.40, badge, bgc, col, border=bdc, size=10.5)
-    s.notes("SLIDE 6: Live 3-act demo proving +₹1 exact lock rejection, sub-limit prompt injection block, and Clause 14.3 passkey protection.")
+    s.notes("SLIDE 6: Live 3-act demo: exact-rupee lock (+₹1 overcharge rejected), sub-limit DOM hijack block, and Clause 14.3 1-Tap Passkey escalation.")
 
-    # SLIDE 7 — 240-SCENARIO MEASURED RESULTS
-    s = EditorialSlide(prs, 7, "06 / MEASURED BENCHMARKS")
+    # SLIDE 7 — 240-SCENARIO MEASURED BENCHMARK PROOF
+    s = EditorialSlide(prs, 7, "06 / MEASURED RED-TEAM PROOF")
     s.morph()
     s.headline(
-        "100% sub-limit injection interception across 240 test cases with zero false positives.",
-        "Reproducible live via POST /api/benchmarks/run and 10 / 10 passing pytest tests.",
+        "100% sub-limit hijack prevention across 240 cases with zero false positives.",
+        "Reproducible live via POST /api/benchmarks/run and 10 / 10 pytest tests.",
     )
 
     s.rect(0.65, 2.35, 4.45, 1.92, fill=C_MINT_WASH, border=C_MINT_BORDER, border_pt=1.2, radius=0.08)
@@ -452,47 +430,75 @@ def build_deck(out_path: str) -> None:
         by += 0.96
 
     s.text("Deterministic pre-filter P95 < 1 ms · 10 / 10 pytest passing", 5.72, 5.72, 6.64, 0.42, size=12.5, bold=True, font="Consolas", color=C_SAGE)
-    s.notes("SLIDE 7: 240 live scenarios verify 90/90 injections caught, 50/50 fine-print traps caught, 30/30 spoofs blocked, and 0/50 false positives.")
+    s.notes("SLIDE 7: 240 live cases confirm 90/90 sub-limit injections blocked, 50/50 fine-print traps caught, 30/30 spoofs blocked, and 0/50 false positives.")
 
-    # SLIDE 8 — HONEST ARCHITECTURE BOUNDARY (<85 words)
-    s = EditorialSlide(prs, 8, "07 / HONEST SYSTEM BOUNDARY")
+    # SLIDE 8 — ZERO-CHARTER FEASIBILITY & BUSINESS FITNESS
+    s = EditorialSlide(prs, 8, "07 / FEASIBILITY & BUSINESS MODEL")
     s.morph()
     s.headline(
-        "What runs live today — and how each layer swaps for production banks.",
-        "Standardized A2A & MCP interfaces allow drop-in issuer adapters.",
+        "Ships on JIT card rails with zero bank charter — and 3 revenue streams.",
+        "Built on Ramp & Brex's sponsor-bank model with a 5-min MCP wedge.",
     )
 
-    s.rect(0.65, 2.35, 12.03, 4.10, fill=C_WHITE, border=C_LINE, radius=0.08)
-    s.text("LAYER", 0.92, 2.54, 2.3, 0.28, size=10.5, bold=True, font="Consolas", color=C_SAGE)
-    s.text("LIVE IN REPO TODAY", 3.45, 2.54, 4.6, 0.28, size=10.5, bold=True, font="Consolas", color=C_EMERALD)
-    s.text("PRODUCTION ADAPTER", 8.30, 2.54, 4.1, 0.28, size=10.5, bold=True, font="Consolas", color=C_COBALT)
+    # Left Card: Actual Feasibility Today
+    s.rect(0.65, 2.32, 5.85, 3.22, fill=C_WHITE, border=C_LINE, radius=0.08)
+    s.text("ACTUAL FEASIBILITY TODAY", 0.92, 2.52, 5.3, 0.28, size=10.5, bold=True, font="Consolas", color=C_EMERALD)
+    s.text(
+        "• Zero Charter: Program layer over Stripe Issuing, Marqeta, RazorpayX.\n"
+        "• JIT Webhooks: <500ms callbacks enforce ±₹0.00 & card shredding.\n"
+        "• Live Now: MCP, A2A, Ed25519 & 60s sandbox.",
+        0.92,
+        2.90,
+        5.3,
+        2.45,
+        size=13.5,
+        color=C_PINE,
+        spacing=1.28,
+    )
 
-    rows = [
-        ("Discovery & MCP", "/.well-known/agent.json + POST /mcp", "Cloud Run + OAuth"),
-        ("Mandate Crypto", "Ed25519 + SHA-256 tamper proof", "Cloud KMS + WebAuthn"),
-        ("Quorum Router", "Gemini 2.5 Router + offline mode", "Vertex AI Gemini"),
-        ("Card Issuing", "Luhn PAN sandbox + ±₹0.00 lock", "Stripe Issuing / RazorpayX"),
-        ("Audit Ledger", "SQLite WAL ACID + SSE stream", "Cloud SQL Postgres"),
-    ]
-    for i, (ly, lv, pr) in enumerate(rows):
-        ry = 2.98 + i * 0.66
-        s.rect(0.92, ry - 0.06, 11.48, 0.015, fill=C_LINE, border=None, rounded=False)
-        s.text(ly, 0.92, ry + 0.04, 2.3, 0.44, size=13.5, bold=True, color=C_PINE, valign="middle")
-        s.text(lv, 3.45, ry + 0.04, 4.65, 0.44, size=13, color=C_PINE, valign="middle")
-        s.text(pr, 8.30, ry + 0.04, 4.1, 0.44, size=13, color=C_SAGE, valign="middle")
-    s.notes("SLIDE 8: Transparent split between what runs live right now in this repo vs drop-in bank/fintech adapters.")
+    # Right Card: 3-Stream Revenue Model
+    s.rect(6.83, 2.32, 5.85, 3.22, fill=C_MINT_WASH, border=C_MINT_BORDER, border_pt=1.2, radius=0.08)
+    s.text("BUSINESS FITNESS & REVENUE", 7.10, 2.52, 5.3, 0.28, size=10.5, bold=True, font="Consolas", color=C_EMERALD)
+    s.text(
+        "1. 1.2%–1.8% Interchange: Merchant share on settled AI cards.\n"
+        "2. $29–$99/agent/mo: CFO governance, audit logs & Passkeys.\n"
+        "3. $0.01–$0.03/auth: Issuer firewall API licensing.",
+        7.10,
+        2.90,
+        5.3,
+        2.45,
+        size=13.5,
+        color=C_PINE,
+        spacing=1.28,
+    )
+
+    s.rect(0.65, 5.74, 12.03, 0.80, fill=C_WHITE, border=C_LINE, radius=0.08)
+    s.text(
+        "ICP: AI startups spending ₹5L–₹1Cr+/mo  |  MOAT: Cross-merchant threat graph",
+        0.92,
+        5.90,
+        11.4,
+        0.48,
+        size=13.0,
+        bold=True,
+        font="Consolas",
+        color=C_PINE,
+        align="center",
+        valign="middle",
+    )
+    s.notes("SLIDE 8: Zero bank charter needed—we run over JIT webhooks from Stripe Issuing/RazorpayX and monetize via interchange, agent SaaS, and issuer licensing.")
 
     # SLIDE 9 — DARK-PINE EDITORIAL CLOSING
     s = EditorialSlide(prs, 9, "08 / SUMMARY", dark=True)
     s.morph()
-    s.text("Make autonomous software\nsafe to spend.", 0.65, 1.35, 10.8, 1.48, size=44, bold=True, font="Bahnschrift", color=C_WHITE, spacing=1.08)
-    s.text("3-Cluster quorum verification and 60-second exact-rupee virtual cards.", 0.65, 3.05, 9.8, 0.60, size=17, color=C_CARD_MINT)
+    s.text("Protocols teach agents how to pay.\nNumen makes it safe to let them.", 0.65, 1.35, 11.4, 1.50, size=40, bold=True, font="Bahnschrift", color=C_WHITE, spacing=1.10)
+    s.text("Layer-2 issuer control plane & 60-second exact-rupee cards.", 0.65, 3.12, 9.8, 0.56, size=17, color=C_CARD_MINT)
 
     recaps = [
-        ("Problem", "$3T–$15T wave vs. 55% banking ASR"),
-        ("Quorum", "CaMeL + AttriGuard + FinePrint"),
-        ("Protocol", "AP2 Ed25519 + MCP + A2A Card"),
-        ("Proof", "100% block across 240 live tests"),
+        ("Treasury", "Sub-accounts & Ed25519 caps"),
+        ("Pre-Auth", "Blocks injections & ₹36k traps"),
+        ("60s Cards", "±₹0.00 lock & auto-shred"),
+        ("Business", "Interchange + SaaS + Issuer API"),
     ]
     for i, (rk, rv) in enumerate(recaps):
         rx = 0.65 + i * 3.06
@@ -501,11 +507,11 @@ def build_deck(out_path: str) -> None:
         s.text(rv, rx + 0.20, 4.84, 2.46, 0.56, size=13, color=C_WHITE)
 
     s.text("github.com/tanish19078/numen   ·   http://127.0.0.1:8000", 0.65, 6.08, 11.4, 0.36, size=13.5, bold=True, font="Consolas", color=C_CARD_MINT)
-    s.notes("SLIDE 9: Closing summary. Let's open the live demo console.")
+    s.notes("SLIDE 9: Protocols teach agents how to pay. Numen makes it safe to let them.")
 
     audit_deck(prs)
     prs.save(out_path)
-    print(f"Saved clean 9-slide pitch deck: {out_path}")
+    print(f"Saved revised fintech pitch deck: {out_path}")
 
 
 if __name__ == "__main__":

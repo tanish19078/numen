@@ -4,13 +4,36 @@
 
 ---
 
-## 1. The 60-Second Coffee Pitch (Plain English)
+## 1. The 60-Second Coffee Pitch & Where Numen Sits (Plain English)
 
 > *"Companies now run autonomous AI agents at 3:00 AM to spin up cloud GPUs, source data, and buy SaaS. Today they face a broken choice: either block agents from paying altogether, or hand them a static `₹10,000` corporate card.*
 >
 > *Here's the catch: a static `₹10,000` limit **blindly approves** a `₹4,200` prompt-injection theft hidden in white-on-white CSS (`opacity:0`) on a vendor webpage, and reusable card numbers silently absorb hidden `₹36,000/yr` Clause 14.3 auto-renewals.*
 >
-> ***Numen** is the programmable corporate bank layer (like Mercury or Ramp built natively for AI agents) that checks **why** an agent wants to spend before any rupee moves—combining **Google AP2 (`Ed25519`) mandates**, a **4-voter Causal Verification Quorum** derived from DeepMind `CaMeL` & `AttriGuard`, and **60-second single-use virtual cards locked to the exact rupee (`±₹0.00`)** that shred immediately after one charge."*
+> ***Numen** is the **Ramp + Stripe Radar control layer** for AI agent spend—checking **why** an agent wants to pay before minting a **60-second single-use virtual card locked to the exact rupee (`±₹0.00`)** that shreds immediately after one charge."*
+
+### Where Numen Sits in the 4-Layer Agentic Payments Stack
+
+```text
+Layer 4 (Top)    │ AI Agents & Frameworks   (Claude, Cursor, OpenAI, Google ADK, LangGraph)
+─────────────────┼──────────────────────────────────────────────────────────────────────────
+Layer 3          │ Agent & Commerce Specs   (A2A discovery, MCP tools, AP2 / ACP mandates)
+─────────────────┼──────────────────────────────────────────────────────────────────────────
+Layer 2 (NUMEN)  │ ISSUER CONTROL PLANE & SPEND FIREWALL   ◀── WE OWN THIS LAYER
+                 │ Sub-accounts · Pre-Auth Causal Checks · Fine-Print Audit · 60s Exact-₹ Cards
+─────────────────┼──────────────────────────────────────────────────────────────────────────
+Layer 1 (Bottom) │ Raw Settlement Rails     (Visa, Mastercard, Stripe Issuing, RazorpayX, UPI, x402)
+```
+
+- **We do NOT rebuild Visa or wait years for a bank charter (Layer 1).** Like Ramp, Brex, and Mercury, we plug into licensed sponsor-bank JIT authorization rails.
+- **We do NOT compete on which LLM chatbot wins (Layer 4).** Every agent framework routes through Layer 2 before money moves.
+
+### 10-Second Cheat Sheet: MCP vs. A2A vs. AP2
+| Protocol | Plain-English Role | How Numen Uses It |
+| :--- | :--- | :--- |
+| **MCP** *(Anthropic)* | **USB-C for AI tools** | External agents call **`POST /mcp`** (`request_scoped_card`) to request a 60s virtual card. |
+| **A2A** *(Google)* | **Agent discovery card & phone line** | Numen publishes **`GET /.well-known/agent.json`** declaring its 3 clusters, endpoints, and skills. |
+| **AP2** *(Google + 100+ partners)* | **3-part signed receipt chain** | Signs **`IntentMandate`** (human caps) → **`CartMandate`** (merchant/terms) → **`PaymentMandate`** (60s card). |
 
 ---
 
@@ -195,6 +218,7 @@ Every defense in Numen is derived directly from published security research, plu
 Use Section 1 (Hook) → Section 2 (`$3T–$15T`, `55%` AgentDojo Banking ASR) → Section 3 (3 Clusters + 4 Research Papers) → Section 8 (`Zero bank charter`, Stripe/RazorpayX JIT feasibility + `3` revenue streams) → Live Demo (`http://127.0.0.1:8000`: Act 1 `+₹1` decline & auto-shred, Act 2 `opacity:0` block, Act 3 `₹99 -> ₹36k/yr` Passkey).
 
 **Tough Peer Questions & Crisp Answers:**
+- *"This feels very Agentic AI heavy — why is it Fintech?"* → **"Every generation of Fintech rebuilt banking rails for a new buyer—Stripe for developers, Ramp for startups, and Visa/Mastercard/Stripe/Google AP2 just launched for AI agents (`$3T–$15T`). Our product is pure Fintech: treasury sub-accounts, programmable 60-second exact-rupee virtual cards, predatory subscription blocking, and ACID settlement—monetized via `1.2%–1.8%` commercial interchange and issuer licensing. We only use causal checks at pre-authorization because SMS OTPs and `₹10,000` static caps break when the buyer is software."**
 - *"Doesn't AttriGuard double latency/tokens?"* → "Only when untrusted DOM or dense T&Cs are present. Our Smart Router keeps trusted cloud infra at 0x overhead on `Gemini 2.5 Flash` + `<1ms` deterministic checks, escalating only suspicious payloads to `Pro`."
 - *"Why would someone trust a hackathon neobank?"* → "We don't hold customer deposits on our own charter. Numen is a programmable JIT authorization and issuing firewall sitting over Stripe Issuing / RazorpayX / licensed sponsor banks."
 - *"Can't the LLM itself check if a webpage is safe?"* → "AgentDojo proved undefended GPT-4o still falls to `55.0%` (`79/144`) of banking attacks! You need deterministic capability isolation (`CaMeL`), stripped counterfactual comparison (`AttriGuard`), and zero-LLM exact-rupee card shredding (`Cluster 3`)."

@@ -3,57 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Numen — Keynote Presentation (16:9)</title>
+  <title>Numen — Fintech Layer-2 Keynote (16:9)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --canvas: #F7FAF8;
-      --white: #FFFFFF;
-      --subtle: #F1F6F3;
-      --line: #E2EBE5;
-      --pine: #0B1F16;
-      --sage: #526B5D;
-      --stone: #849B8E;
-      --emerald: #059669;
-      --mint-wash: #ECFDF5;
-      --mint-border: #A7F3D0;
-      --dark-pine: #0D261C;
-      --card-mint: #6EE7B7;
-      --threat: #DC2626;
-      --threat-wash: #FEF2F2;
-      --threat-border: #FECACA;
-      --review: #D97706;
-      --review-wash: #FFFBEB;
-      --review-border: #FDE68A;
-      --cobalt: #2563EB;
-      --cobalt-wash: #EFF6FF;
+      --canvas: #F7FAF8; --white: #FFFFFF; --subtle: #F1F6F3; --line: #E2EBE5;
+      --pine: #0B1F16; --sage: #526B5D; --stone: #849B8E; --emerald: #059669;
+      --mint-wash: #ECFDF5; --mint-border: #A7F3D0; --dark-pine: #0D261C;
+      --card-mint: #6EE7B7; --threat: #DC2626; --threat-wash: #FEF2F2;
+      --threat-border: #FECACA; --review: #D97706; --review-wash: #FFFBEB;
+      --review-border: #FDE68A; --cobalt: #2563EB; --cobalt-wash: #EFF6FF;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #0B1F16;
-      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    }
-
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0B1F16; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
     #viewport { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
     #stage { width: 1920px; height: 1080px; position: relative; transform-origin: center center; overflow: hidden; box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45); }
-
-    .slide {
-      position: absolute; inset: 0; padding: 76px 96px 88px; background: var(--canvas);
-      color: var(--pine); display: none; flex-direction: column; justify-content: space-between;
-    }
+    .slide { position: absolute; inset: 0; padding: 76px 96px 88px; background: var(--canvas); color: var(--pine); display: none; flex-direction: column; justify-content: space-between; }
     .slide.active { display: flex; }
     .slide.dark { background: var(--dark-pine); color: var(--white); }
-
     .mono { font-family: 'JetBrains Mono', monospace; }
     .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; letter-spacing: 0.08em; color: var(--emerald); text-transform: uppercase; }
     .slide.dark .eyebrow { color: var(--card-mint); }
-
     h1 { font-size: 52px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.12; margin-top: 16px; }
     .subhead { font-size: 24px; color: var(--sage); margin-top: 14px; line-height: 1.35; max-width: 1460px; }
     .slide.dark .subhead { color: #B8D9C8; }
@@ -64,17 +36,9 @@
     .progress-fill { height: 100%; background: var(--emerald); }
     .slide.dark .progress-fill { background: var(--card-mint); }
     .foot-meta { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--stone); font-weight: 600; }
-
     .card { background: var(--white); border: 1.5px solid var(--line); border-radius: 22px; padding: 32px; }
     .pill { display: inline-block; padding: 8px 16px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; }
-
-    #controls {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; align-items: center; gap: 12px;
-      background: rgba(11, 31, 22, 0.88); backdrop-filter: blur(8px);
-      border: 1px solid rgba(110, 231, 183, 0.28); border-radius: 999px;
-      padding: 8px 16px; z-index: 100; color: white; font-family: 'JetBrains Mono', monospace; font-size: 13px;
-    }
+    #controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; background: rgba(11, 31, 22, 0.88); backdrop-filter: blur(8px); border: 1px solid rgba(110, 231, 183, 0.28); border-radius: 999px; padding: 8px 16px; z-index: 100; color: white; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
     #controls button { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 999px; padding: 4px 12px; cursor: pointer; font-family: inherit; font-weight: 600; }
     #controls button:hover { background: rgba(110, 231, 183, 0.2); }
   </style>
@@ -84,27 +48,27 @@
     <div id="stage">
       <!-- SLIDE 1 -->
       <section class="slide active">
-        <div><div class="eyebrow">Numen / Agentic Treasury OS</div></div>
+        <div><div class="eyebrow">Numen / Fintech for Agentic Commerce</div></div>
         <div class="body-area" style="display:grid; grid-template-columns: 1.05fr 1fr; gap: 72px; align-items: center;">
           <div>
-            <span class="pill" style="background:var(--mint-wash); color:var(--emerald); border:1.5px solid var(--mint-border);">3-CLUSTER AP2 SPEND FIREWALL</span>
+            <span class="pill" style="background:var(--mint-wash); color:var(--emerald); border:1.5px solid var(--mint-border);">PROGRAMMABLE AGENT ISSUER LAYER</span>
             <div style="font-size: 96px; font-weight: 800; letter-spacing: -0.04em; margin-top: 24px; line-height:1;">Numen</div>
             <div style="font-size: 38px; font-weight: 700; color: var(--emerald); margin-top: 22px; line-height: 1.2;">
-              Verify why an AI agent wants to spend — before minting the card.
+              The Ramp + Stripe Radar control layer for AI agent spend.
             </div>
             <p style="font-size: 23px; color: var(--sage); margin-top: 26px; line-height: 1.5; max-width: 760px;">
-              Agent sub-accounts, causal injection defense, and 60-second exact-rupee virtual cards.
+              Sub-accounts, pre-authorization fraud checks, and 60-second exact-rupee virtual cards.
             </p>
             <div style="display:flex; gap:16px; margin-top:40px;">
               <span class="pill card" style="padding:10px 20px;">Google AP2 + MCP + A2A</span>
-              <span class="pill card" style="padding:10px 20px;">CaMeL + AttriGuard Quorum</span>
+              <span class="pill card" style="padding:10px 20px;">60s Exact-Rupee Cards</span>
             </div>
           </div>
           <div style="display:flex; flex-direction:column; gap:24px;">
             <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
               <div>
-                <div class="mono" style="font-size:14px; color:var(--sage); font-weight:700;">OPERATING VAULT</div>
-                <div style="font-size:24px; font-weight:700; margin-top:6px;">Acme AI Labs · 3 Agents</div>
+                <div class="mono" style="font-size:14px; color:var(--sage); font-weight:700;">OPERATING TREASURY VAULT</div>
+                <div style="font-size:24px; font-weight:700; margin-top:6px;">Acme AI Labs · 3 Sub-Accounts</div>
               </div>
               <div style="font-size:40px; font-weight:800;">₹18,40,000</div>
             </div>
@@ -119,139 +83,124 @@
               </div>
               <div class="mono" style="font-size:34px; font-weight:700; letter-spacing:0.12em; margin:34px 0 28px;">4532  8910  4402  9104</div>
               <div class="mono" style="font-size:16px; color:#B8D9C8; border-top:1px solid rgba(255,255,255,0.15); padding-top:18px;">
-                DEVOPS-AGENT · RUNPOD CLOUD · SINGLE-USE
+                DEVOPS-AGENT · RUNPOD CLOUD · AUTO-SHREDS
               </div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-              <div class="pill" style="text-align:center; padding:14px; background:var(--mint-wash); color:var(--emerald); border:1.5px solid var(--mint-border);">Quorum Drift: 0.00 (Clean)</div>
+              <div class="pill" style="text-align:center; padding:14px; background:var(--mint-wash); color:var(--emerald); border:1.5px solid var(--mint-border);">Pre-Auth: Verified</div>
               <div class="pill card" style="text-align:center; padding:14px;">Post-Settle Bleed: ₹0.00</div>
             </div>
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:11.1%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>01 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:11.1%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>01 / 09</span></div></div>
       </section>
 
       <!-- SLIDE 2 -->
       <section class="slide">
         <div>
-          <div class="eyebrow">01 / Verified Problem &amp; Market Data</div>
-          <h1>Agents will execute $3T–$15T in commerce — on banking flows with a 55% hijack rate.</h1>
-          <p class="subhead">Payment protocols standardize checkout transport; none verify pre-checkout intent.</p>
+          <div class="eyebrow">01 / Market &amp; The 4-Layer Stack</div>
+          <h1>Agents will drive $3T–$15T in spend — we own the issuer choke point.</h1>
+          <p class="subhead">Banking rails cannot see agent hijacks; agent specs do not stop them.</p>
         </div>
         <div class="body-area" style="gap:48px;">
           <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:48px;">
             <div style="padding-right:32px; border-right:2px solid var(--line);">
               <div style="font-size:74px; font-weight:800; color:var(--emerald);">$3T – $5T</div>
-              <div style="font-size:26px; font-weight:700; margin-top:14px;">Global agent commerce by 2030</div>
-              <div style="font-size:20px; color:var(--sage); margin-top:10px;">McKinsey (2025) · up to $1T U.S. B2C</div>
+              <div style="font-size:26px; font-weight:700; margin-top:14px;">Agent commerce by 2030</div>
+              <div style="font-size:20px; color:var(--sage); margin-top:10px;">McKinsey (up to $1T U.S. B2C)</div>
             </div>
             <div style="padding-right:32px; border-right:2px solid var(--line);">
               <div style="font-size:74px; font-weight:800; color:var(--cobalt);">90% / $15T</div>
-              <div style="font-size:26px; font-weight:700; margin-top:14px;">B2B buying via agents by 2028</div>
-              <div style="font-size:20px; color:var(--sage); margin-top:10px;">Gartner B2B exchange projection</div>
+              <div style="font-size:26px; font-weight:700; margin-top:14px;">B2B buying via AI by 2028</div>
+              <div style="font-size:20px; color:var(--sage); margin-top:10px;">Gartner enterprise forecast</div>
             </div>
             <div>
               <div style="font-size:74px; font-weight:800; color:var(--threat);">55.0% ASR</div>
-              <div style="font-size:26px; font-weight:700; margin-top:14px;">Banking hijack rate (79 / 144)</div>
-              <div style="font-size:20px; color:var(--sage); margin-top:10px;">AgentDojo GPT-4o (arXiv:2406.13352)</div>
+              <div style="font-size:26px; font-weight:700; margin-top:14px;">Banking hijacks (79 / 144)</div>
+              <div style="font-size:20px; color:var(--sage); margin-top:10px;">AgentDojo GPT-4o (2406.13352)</div>
             </div>
           </div>
           <div class="card">
-            <div class="mono" style="font-size:15px; font-weight:700; color:var(--sage); margin-bottom:20px;">PAYMENT RAILS (AP2 · ACP · x402) LEAVE PRE-CHECKOUT INTENT UNGUARDED</div>
+            <div class="mono" style="font-size:15px; font-weight:700; color:var(--emerald); margin-bottom:20px;">THE 4-LAYER AGENTIC PAYMENTS STACK · NUMEN OWNS LAYER 2</div>
             <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px;">
-              <div style="background:var(--mint-wash); border:1.5px solid var(--emerald); border-radius:16px; padding:20px;"><div class="mono" style="font-size:13px; color:var(--emerald); font-weight:700;">AUTHORIZATION</div><div style="font-size:22px; font-weight:700; margin-top:8px;">Google AP2 (100+ partners)</div></div>
-              <div style="background:var(--cobalt-wash); border:1.5px solid var(--cobalt); border-radius:16px; padding:20px;"><div class="mono" style="font-size:13px; color:var(--cobalt); font-weight:700;">CHECKOUT</div><div style="font-size:22px; font-weight:700; margin-top:8px;">Stripe ACP · Visa TAP</div></div>
-              <div style="background:var(--subtle); border:1.5px solid var(--line); border-radius:16px; padding:20px;"><div class="mono" style="font-size:13px; color:var(--sage); font-weight:700;">SETTLEMENT</div><div style="font-size:22px; font-weight:700; margin-top:8px;">Virtual PANs · x402</div></div>
-              <div style="background:var(--threat-wash); border:1.5px solid var(--threat); border-radius:16px; padding:20px;"><div class="mono" style="font-size:13px; color:var(--threat); font-weight:700;">MISSING LAYER</div><div style="font-size:22px; font-weight:700; margin-top:8px;">Numen Causal Quorum</div></div>
+              <div style="background:var(--subtle); border:1.5px solid var(--line); border-radius:16px; padding:20px;"><div class="mono" style="font-size:13px; color:var(--sage); font-weight:700;">L4 · AGENTS</div><div style="font-size:22px; font-weight:700; margin-top:8px;">Claude · Cursor · ADK</div></div>
+              <div style="background:var(--cobalt-wash); border:1.5px solid var(--cobalt); border-radius:16px; padding:20px;"><div class="mono" style="font-size:13px; color:var(--cobalt); font-weight:700;">L3 · PROTOCOLS</div><div style="font-size:22px; font-weight:700; margin-top:8px;">A2A · MCP · AP2 · ACP</div></div>
+              <div style="background:var(--mint-wash); border:2.5px solid var(--emerald); border-radius:16px; padding:20px;"><div class="mono" style="font-size:13px; color:var(--emerald); font-weight:700;">L2 · NUMEN (US)</div><div style="font-size:22px; font-weight:800; margin-top:8px;">Issuer &amp; Spend Firewall</div></div>
+              <div style="background:var(--subtle); border:1.5px solid var(--line); border-radius:16px; padding:20px;"><div class="mono" style="font-size:13px; color:var(--sage); font-weight:700;">L1 · RAILS</div><div style="font-size:22px; font-weight:700; margin-top:8px;">Visa · Stripe · RazorpayX</div></div>
             </div>
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:22.2%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>02 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:22.2%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>02 / 09</span></div></div>
       </section>
 
       <!-- SLIDE 3 -->
       <section class="slide">
         <div>
-          <div class="eyebrow">02 / The Structural Flaw</div>
+          <div class="eyebrow">02 / Why Static Corporate Cards Fail</div>
           <h1>A ₹10,000 spend cap approves a ₹4,200 theft unless the bank checks why.</h1>
-          <p class="subhead">Hidden CSS injections strike below the card limit before checkout.</p>
+          <p class="subhead">Prompt injections, phished links &amp; annual traps strike below static limits.</p>
         </div>
         <div class="body-area" style="display:grid; grid-template-columns:1fr 1fr 1.05fr; gap:28px;">
           <div style="background:var(--threat-wash); border:2px solid var(--threat-border); border-radius:22px; padding:34px; display:flex; flex-direction:column; justify-content:space-between;">
             <div>
               <span class="pill" style="background:var(--threat); color:white;">STATIC ₹10,000 CARD</span>
               <div style="font-size:30px; font-weight:800; margin-top:28px;">₹4,200 &lt;= ₹10,000<br/>Blindly approved</div>
-              <p style="font-size:22px; color:var(--threat); margin-top:28px; line-height:1.5;">
-                Hidden &lt;span opacity:0&gt; hijacks voucher spend.
-              </p>
+              <p style="font-size:22px; color:var(--threat); margin-top:28px; line-height:1.5;">Hidden &lt;span opacity:0&gt; hijacks voucher spend.</p>
             </div>
             <div class="mono" style="font-size:20px; font-weight:800; color:var(--threat);">VERDICT: BLINDLY APPROVED</div>
           </div>
-
           <div style="background:var(--mint-wash); border:2px solid var(--mint-border); border-radius:22px; padding:34px; display:flex; flex-direction:column; justify-content:space-between;">
             <div>
-              <span class="pill" style="background:var(--emerald); color:white;">NUMEN QUORUM</span>
+              <span class="pill" style="background:var(--emerald); color:white;">NUMEN PRE-AUTH</span>
               <div style="font-size:30px; font-weight:800; margin-top:28px;">World A != World B<br/>Causal Drift: 1.00</div>
-              <p style="font-size:22px; color:var(--pine); margin-top:28px; line-height:1.5;">
-                Cloud mandate rejects RETAIL; mint blocked, agent paused.
-              </p>
+              <p style="font-size:22px; color:var(--pine); margin-top:28px; line-height:1.5;">Cloud mandate rejects RETAIL; mint blocked, agent paused.</p>
             </div>
             <div class="mono" style="font-size:20px; font-weight:800; color:var(--emerald);">VERDICT: BLOCKED PRE-MINT</div>
           </div>
-
           <div style="display:flex; flex-direction:column; justify-content:space-between; gap:22px;">
-            <div class="card"><div style="font-size:23px; font-weight:800;">Issuer Choke Point</div><p style="font-size:20px; color:var(--sage); margin-top:10px;">100% of funds pass issuance before money moves.</p></div>
-            <div class="card"><div style="font-size:23px; font-weight:800;">Sub-Limit Defense</div><p style="font-size:20px; color:var(--sage); margin-top:10px;">Stops DOM hijacks, runp0d.io spoofs &amp; 3x loops.</p></div>
-            <div class="card"><div style="font-size:23px; font-weight:800;">Fine-Print Control</div><p style="font-size:20px; color:var(--sage); margin-top:10px;">Holds ₹99 → ₹36k/yr traps for 1-tap passkey.</p></div>
+            <div class="card"><div style="font-size:23px; font-weight:800;">Treasury Choke Point</div><p style="font-size:20px; color:var(--sage); margin-top:10px;">100% of money crosses issuance pre-mint.</p></div>
+            <div class="card"><div style="font-size:23px; font-weight:800;">Phishing &amp; Loops</div><p style="font-size:20px; color:var(--sage); margin-top:10px;">Stops runp0d.io spoofs &amp; 3x/60s retries.</p></div>
+            <div class="card"><div style="font-size:23px; font-weight:800;">Fine-Print Defense</div><p style="font-size:20px; color:var(--sage); margin-top:10px;">Holds ₹99 → ₹36k/yr traps via Passkey.</p></div>
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:33.3%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>03 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:33.3%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>03 / 09</span></div></div>
       </section>
 
       <!-- SLIDE 4 -->
       <section class="slide">
         <div>
-          <div class="eyebrow">03 / 3-Cluster Agentic Architecture</div>
-          <h1>Three isolated clusters separate untrusted agent browsing from deterministic money.</h1>
-          <p class="subhead">External agents vote through a 4-guard quorum; zero LLMs ever touch card minting or custody.</p>
+          <div class="eyebrow">03 / 3-Cluster Fintech Architecture</div>
+          <h1>Three clusters isolate untrusted browsing from deterministic banking ledger custody.</h1>
+          <p class="subhead">No LLM ever signs mandates, generates card PANs, or mutates rupee balances.</p>
         </div>
         <div class="body-area">
           <div style="display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:24px; align-items:center;">
             <div class="card" style="height:500px; display:flex; flex-direction:column; justify-content:center; padding:42px;">
-              <div class="mono" style="font-size:15px; font-weight:700; color:var(--emerald);">CLUSTER 1 · UNTRUSTED EDGE</div>
-              <div style="font-size:32px; font-weight:800; margin-top:14px;">Edge Commerce Agents</div>
+              <div class="mono" style="font-size:15px; font-weight:700; color:var(--emerald);">CLUSTER 1 · EDGE</div>
+              <div style="font-size:32px; font-weight:800; margin-top:14px;">Commerce Agents</div>
               <p style="font-size:22px; color:var(--sage); margin-top:26px; line-height:1.6;">
-                DevOps, Procurement, Research &amp; Claude/Cursor<br/><br/>
-                • Discovers /.well-known/agent.json<br/>
-                • Calls POST /mcp<br/>
-                • Holds zero raw PANs
+                DevOps, Procurement &amp; Research<br/><br/>• A2A /.well-known/agent.json<br/>• Calls POST /mcp<br/>• Zero PAN custody
               </p>
             </div>
             <div style="font-size:44px; color:var(--emerald); font-weight:800;">→</div>
             <div style="background:var(--mint-wash); border:2px solid var(--emerald); border-radius:22px; height:500px; display:flex; flex-direction:column; justify-content:center; padding:42px;">
-              <div class="mono" style="font-size:15px; font-weight:700; color:var(--emerald);">CLUSTER 2 · VERIFICATION QUORUM</div>
-              <div style="font-size:32px; font-weight:800; margin-top:14px;">Router + 4 Specialist Voters</div>
+              <div class="mono" style="font-size:15px; font-weight:700; color:var(--emerald);">CLUSTER 2 · QUORUM</div>
+              <div style="font-size:32px; font-weight:800; margin-top:14px;">4 Pre-Auth Voters</div>
               <p style="font-size:22px; color:var(--pine); margin-top:26px; line-height:1.6;">
-                Gemini 2.5 Flash / Pro Smart Router<br/><br/>
-                • V1: Budget &amp; 3x/60s Loop<br/>
-                • V2: CaMeL Provenance<br/>
-                • V3: AttriGuard · V4: FinePrint
+                Gemini Flash / Pro Router<br/><br/>• Budget &amp; 3x Loop<br/>• CaMeL Provenance<br/>• AttriGuard &amp; FinePrint
               </p>
             </div>
             <div style="font-size:44px; color:var(--emerald); font-weight:800;">→</div>
             <div style="background:var(--dark-pine); border:2px solid var(--emerald); color:white; border-radius:22px; height:500px; display:flex; flex-direction:column; justify-content:center; padding:42px;">
-              <div class="mono" style="font-size:15px; font-weight:700; color:var(--card-mint);">CLUSTER 3 · ZERO-LLM CUSTODY</div>
-              <div style="font-size:32px; font-weight:800; margin-top:14px;">Deterministic Vault &amp; Mint</div>
+              <div class="mono" style="font-size:15px; font-weight:700; color:var(--card-mint);">CLUSTER 3 · VAULT</div>
+              <div style="font-size:32px; font-weight:800; margin-top:14px;">Zero-LLM Custody</div>
               <p style="font-size:22px; color:#CCE8D9; margin-top:26px; line-height:1.6;">
-                Zero LLM calls inside Cluster 3<br/><br/>
-                • Signs Ed25519 AP2 Mandates<br/>
-                • Mints 60s Luhn PAN (±₹0.00)<br/>
-                • Commits SQLite WAL &amp; Shreds
+                Deterministic Python Only<br/><br/>• Ed25519 AP2 Mandates<br/>• 60s Luhn PAN (±₹0.00)<br/>• ACID Ledger &amp; Shredder
               </p>
             </div>
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:44.4%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>04 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:44.4%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>04 / 09</span></div></div>
       </section>
 
       <!-- SLIDE 5 -->
@@ -259,7 +208,7 @@
         <div>
           <div class="eyebrow">04 / Peer-Reviewed Research Basis</div>
           <h1>Empirical findings from four security papers compiled into one smart-routed quorum.</h1>
-          <p class="subhead">Smart Routing eliminates counterfactual latency overhead on trusted fast-path traffic.</p>
+          <p class="subhead">Smart Routing avoids counterfactual overhead on clean cloud infrastructure.</p>
         </div>
         <div class="body-area">
           <div class="card" style="padding:36px;">
@@ -280,60 +229,51 @@
             </table>
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:55.5%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>05 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:55.5%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>05 / 09</span></div></div>
       </section>
 
       <!-- SLIDE 6 -->
       <section class="slide">
         <div>
-          <div class="eyebrow">05 / Live 3-Act Demo</div>
-          <h1>Three live scenarios prove fast minting, hijack defense, and passkey escalation.</h1>
-          <p class="subhead">Executed end-to-end inside the Spend Firewall workspace.</p>
+          <div class="eyebrow">05 / Live Stage Demo</div>
+          <h1>Three live scenarios prove exact-rupee cards, hijack defense &amp; clause protection.</h1>
+          <p class="subhead">Interactive in our Treasury Console at http://127.0.0.1:8000.</p>
         </div>
         <div class="body-area" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:32px;">
           <div class="card" style="border-color:var(--mint-border); display:flex; flex-direction:column; justify-content:space-between;">
             <div>
-              <div class="mono" style="font-size:14px; font-weight:700; color:var(--emerald);">ACT I · CLEAN INFRA</div>
+              <div class="mono" style="font-size:14px; font-weight:700; color:var(--emerald);">ACT I · EXACT-RUPEE MINT</div>
               <div style="font-size:30px; font-weight:800; margin-top:12px;">RunPod GPU (₹3,400)</div>
-              <p style="font-size:21px; color:var(--sage); margin-top:28px; line-height:1.55;">
-                Flash verifies mandate; mints 60s PAN.<br/><br/>
-                +₹1 declines; ₹3,400 settles &amp; shreds.
-              </p>
+              <p style="font-size:21px; color:var(--sage); margin-top:28px; line-height:1.55;">Flash approves mandate; mints 60s PAN.<br/><br/>+₹1 declines; ₹3,400 settles &amp; shreds.</p>
             </div>
             <div class="pill" style="text-align:center; background:var(--mint-wash); color:var(--emerald); border:1.5px solid var(--mint-border);">MINTED → SHREDDED</div>
           </div>
           <div class="card" style="border-color:var(--threat-border); display:flex; flex-direction:column; justify-content:space-between;">
             <div>
-              <div class="mono" style="font-size:14px; font-weight:700; color:var(--threat);">ACT II · DOM HIJACK</div>
+              <div class="mono" style="font-size:14px; font-weight:700; color:var(--threat);">ACT II · SUB-LIMIT HIJACK</div>
               <div style="font-size:30px; font-weight:800; margin-top:12px;">Gift Vouchers (₹4,200)</div>
-              <p style="font-size:21px; color:var(--sage); margin-top:28px; line-height:1.55;">
-                Strips opacity:0 injection below ₹10k limit.<br/><br/>
-                Drift 1.00 blocks mint &amp; pauses agent.
-              </p>
+              <p style="font-size:21px; color:var(--sage); margin-top:28px; line-height:1.55;">Strips opacity:0 injection below ₹10k limit.<br/><br/>Drift 1.00 blocks mint &amp; pauses agent.</p>
             </div>
             <div class="pill" style="text-align:center; background:var(--threat-wash); color:var(--threat); border:1.5px solid var(--threat-border);">BLOCKED (₹0 LOST)</div>
           </div>
           <div class="card" style="border-color:var(--review-border); display:flex; flex-direction:column; justify-content:space-between;">
             <div>
-              <div class="mono" style="font-size:14px; font-weight:700; color:var(--review);">ACT III · CLAUSE TRAP</div>
+              <div class="mono" style="font-size:14px; font-weight:700; color:var(--review);">ACT III · SUBSCRIPTION TRAP</div>
               <div style="font-size:30px; font-weight:800; margin-top:12px;">₹99 Trial → ₹36k/yr</div>
-              <p style="font-size:21px; color:var(--sage); margin-top:28px; line-height:1.55;">
-                Exposes Clause 14.3 annual auto-debit.<br/><br/>
-                1-Tap Passkey denies or caps ₹99 once.
-              </p>
+              <p style="font-size:21px; color:var(--sage); margin-top:28px; line-height:1.55;">Exposes Clause 14.3 annual auto-debit.<br/><br/>1-Tap Passkey denies or caps ₹99 once.</p>
             </div>
             <div class="pill" style="text-align:center; background:var(--review-wash); color:var(--review); border:1.5px solid var(--review-border);">PASSKEY ESCALATED</div>
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:66.6%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>06 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:66.6%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>06 / 09</span></div></div>
       </section>
 
       <!-- SLIDE 7 -->
       <section class="slide">
         <div>
-          <div class="eyebrow">06 / Measured Benchmarks</div>
-          <h1>100% sub-limit injection interception across 240 test cases with zero false positives.</h1>
-          <p class="subhead">Reproducible live via POST /api/benchmarks/run and 10 / 10 passing pytest tests.</p>
+          <div class="eyebrow">06 / Measured Red-Team Proof</div>
+          <h1>100% sub-limit hijack prevention across 240 cases with zero false positives.</h1>
+          <p class="subhead">Reproducible live via POST /api/benchmarks/run and 10 / 10 pytest tests.</p>
         </div>
         <div class="body-area" style="display:grid; grid-template-columns:1fr 1.55fr; gap:36px;">
           <div style="display:flex; flex-direction:column; gap:24px;">
@@ -364,37 +304,40 @@
             </div>
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:77.7%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>07 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:77.7%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>07 / 09</span></div></div>
       </section>
 
       <!-- SLIDE 8 -->
       <section class="slide">
         <div>
-          <div class="eyebrow">07 / Honest System Boundary</div>
-          <h1>What runs live today — and how each layer swaps for production banks.</h1>
-          <p class="subhead">Standardized A2A &amp; MCP interfaces allow drop-in issuer adapters.</p>
+          <div class="eyebrow">07 / Feasibility &amp; Business Model</div>
+          <h1>Ships on licensed JIT card rails with zero bank charter — and 3 revenue streams.</h1>
+          <p class="subhead">Built on the same sponsor-bank model as Ramp &amp; Brex, with an MCP startup wedge.</p>
         </div>
-        <div class="body-area">
-          <div class="card" style="padding:36px;">
-            <table style="width:100%; border-collapse:collapse; text-align:left;">
-              <thead>
-                <tr class="mono" style="font-size:15px; border-bottom:2px solid var(--line);">
-                  <th style="padding-bottom:18px; color:var(--sage);">LAYER</th>
-                  <th style="padding-bottom:18px; color:var(--emerald);">LIVE IN REPO TODAY</th>
-                  <th style="padding-bottom:18px; color:var(--cobalt);">PRODUCTION ADAPTER</th>
-                </tr>
-              </thead>
-              <tbody style="font-size:22px;">
-                <tr style="border-bottom:1px solid var(--line);"><td style="padding:24px 0; font-weight:800;">Discovery &amp; MCP</td><td>/.well-known/agent.json + POST /mcp</td><td style="color:var(--sage);">Cloud Run + OAuth</td></tr>
-                <tr style="border-bottom:1px solid var(--line);"><td style="padding:24px 0; font-weight:800;">Mandate Crypto</td><td>Ed25519 + SHA-256 tamper proof</td><td style="color:var(--sage);">Cloud KMS + WebAuthn</td></tr>
-                <tr style="border-bottom:1px solid var(--line);"><td style="padding:24px 0; font-weight:800;">Quorum Router</td><td>Gemini 2.5 Router + offline mode</td><td style="color:var(--sage);">Vertex AI Gemini</td></tr>
-                <tr style="border-bottom:1px solid var(--line);"><td style="padding:24px 0; font-weight:800;">Card Issuing</td><td>Luhn PAN sandbox + ±₹0.00 lock</td><td style="color:var(--sage);">Stripe Issuing / RazorpayX</td></tr>
-                <tr><td style="padding-top:24px; font-weight:800;">Audit Ledger</td><td>SQLite WAL ACID + SSE stream</td><td style="color:var(--sage);">Cloud SQL Postgres</td></tr>
-              </tbody>
-            </table>
+        <div class="body-area" style="gap:28px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;">
+            <div class="card" style="padding:36px;">
+              <div class="mono" style="font-size:15px; font-weight:700; color:var(--emerald);">ACTUAL FEASIBILITY TODAY</div>
+              <ul style="margin-top:22px; padding-left:24px; font-size:22px; line-height:1.65; color:var(--pine);">
+                <li><b>Zero Bank Charter Needed:</b> Program layer over Stripe Issuing, Marqeta &amp; RazorpayX.</li>
+                <li><b>JIT Webhooks:</b> &lt;500ms callbacks enforce ±₹0.00 &amp; single-use shred today.</li>
+                <li><b>Live Now:</b> MCP, A2A, Ed25519, 4-voter quorum &amp; 60s Luhn sandbox.</li>
+              </ul>
+            </div>
+            <div style="background:var(--mint-wash); border:2px solid var(--mint-border); border-radius:22px; padding:36px;">
+              <div class="mono" style="font-size:15px; font-weight:700; color:var(--emerald);">BUSINESS FITNESS &amp; REVENUE</div>
+              <ol style="margin-top:22px; padding-left:26px; font-size:22px; line-height:1.65; color:var(--pine);">
+                <li><b>1.2%–1.8% Interchange:</b> Merchant-paid share on settled AI cards.</li>
+                <li><b>$29–$99 / agent / mo:</b> CFO governance, audit logs &amp; Passkey SLA.</li>
+                <li><b>$0.01–$0.03 / auth:</b> Pre-auth firewall API for corporate issuers.</li>
+              </ol>
+            </div>
+          </div>
+          <div class="card mono" style="text-align:center; padding:20px; font-size:19px; font-weight:700;">
+            BEACHHEAD ICP: AI startups spending ₹5L–₹1Cr+/mo &nbsp;·&nbsp; MOAT: Cross-merchant adversarial spend graph
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:88.8%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>08 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:88.8%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>08 / 09</span></div></div>
       </section>
 
       <!-- SLIDE 9 -->
@@ -402,24 +345,24 @@
         <div><div class="eyebrow">08 / Summary</div></div>
         <div class="body-area" style="gap:44px;">
           <div>
-            <div style="font-size:78px; font-weight:800; line-height:1.06; letter-spacing:-0.03em;">
-              Make autonomous software<br/>safe to spend.
+            <div style="font-size:74px; font-weight:800; line-height:1.08; letter-spacing:-0.03em;">
+              Protocols teach agents how to pay.<br/>Numen makes it safe to let them.
             </div>
             <p class="subhead" style="margin-top:26px; font-size:28px;">
-              3-Cluster quorum verification and 60-second exact-rupee virtual cards.
+              Layer-2 issuer control plane &amp; 60-second exact-rupee cards.
             </p>
           </div>
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:24px;">
-            <div style="background:#133628; border:1.5px solid #285F48; border-radius:20px; padding:26px;"><div class="mono" style="font-size:14px; color:var(--card-mint); font-weight:700;">PROBLEM</div><div style="font-size:20px; margin-top:10px;">$3T–$15T wave vs. 55% banking ASR</div></div>
-            <div style="background:#133628; border:1.5px solid #285F48; border-radius:20px; padding:26px;"><div class="mono" style="font-size:14px; color:var(--card-mint); font-weight:700;">QUORUM</div><div style="font-size:20px; margin-top:10px;">CaMeL + AttriGuard + FinePrint</div></div>
-            <div style="background:#133628; border:1.5px solid #285F48; border-radius:20px; padding:26px;"><div class="mono" style="font-size:14px; color:var(--card-mint); font-weight:700;">PROTOCOL</div><div style="font-size:20px; margin-top:10px;">AP2 Ed25519 + MCP + A2A Card</div></div>
-            <div style="background:#133628; border:1.5px solid #285F48; border-radius:20px; padding:26px;"><div class="mono" style="font-size:14px; color:var(--card-mint); font-weight:700;">PROOF</div><div style="font-size:20px; margin-top:10px;">100% block across 240 live tests</div></div>
+            <div style="background:#133628; border:1.5px solid #285F48; border-radius:20px; padding:26px;"><div class="mono" style="font-size:14px; color:var(--card-mint); font-weight:700;">TREASURY</div><div style="font-size:20px; margin-top:10px;">Sub-accounts &amp; Ed25519 caps</div></div>
+            <div style="background:#133628; border:1.5px solid #285F48; border-radius:20px; padding:26px;"><div class="mono" style="font-size:14px; color:var(--card-mint); font-weight:700;">PRE-AUTH</div><div style="font-size:20px; margin-top:10px;">Blocks injections &amp; ₹36k traps</div></div>
+            <div style="background:#133628; border:1.5px solid #285F48; border-radius:20px; padding:26px;"><div class="mono" style="font-size:14px; color:var(--card-mint); font-weight:700;">60s CARDS</div><div style="font-size:20px; margin-top:10px;">±₹0.00 lock &amp; auto-shred</div></div>
+            <div style="background:#133628; border:1.5px solid #285F48; border-radius:20px; padding:26px;"><div class="mono" style="font-size:14px; color:var(--card-mint); font-weight:700;">BUSINESS</div><div style="font-size:20px; margin-top:10px;">Interchange + SaaS + Issuer API</div></div>
           </div>
           <div class="mono" style="font-size:22px; color:var(--card-mint); font-weight:700;">
             github.com/tanish19078/numen &nbsp;&nbsp;·&nbsp;&nbsp; http://127.0.0.1:8000
           </div>
         </div>
-        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:100%"></div></div><div class="foot-meta"><span>NUMEN · 3-CLUSTER AP2 NEOBANK & SPEND FIREWALL</span><span>09 / 09</span></div></div>
+        <div class="footer"><div class="progress-track"><div class="progress-fill" style="width:100%"></div></div><div class="foot-meta"><span>NUMEN · LAYER-2 ISSUER CONTROL PLANE FOR AI SPEND</span><span>09 / 09</span></div></div>
       </section>
     </div>
   </div>
@@ -435,8 +378,7 @@
     let cur = 0;
     function scaleStage() {
       const stage = document.getElementById('stage');
-      const s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-      stage.style.transform = `scale(${s})`;
+      stage.style.transform = `scale(${Math.min(window.innerWidth / 1920, window.innerHeight / 1080)})`;
     }
     function show(idx) {
       cur = (idx + slides.length) % slides.length;
