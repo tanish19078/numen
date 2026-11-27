@@ -56,6 +56,16 @@ export default function App() {
   const [runningBench, setRunningBench] = useState(false);
   const [mcpPayload, setMcpPayload] = useState(SAMPLE_MCP_CALL);
   const [mcpResult, setMcpResult] = useState(null);
+  const [tamperResults, setTamperResults] = useState({});
+  const [mandateForm, setMandateForm] = useState({
+    agent_id: 'agent-devops',
+    natural_language_intent: 'Auto-scale RunPod & GCP GPUs up to INR 25,000/day; zero recurring annual lock-ins.',
+    max_daily_inr: 25000,
+    max_single_tx_inr: 15000,
+    allowed_mccs_csv: 'CLOUD, INFRA, API',
+    allow_recurring: false,
+  });
+  const [signingMandate, setSigningMandate] = useState(false);
   const [errorBanner, setErrorBanner] = useState(null);
 
   const refreshState = useCallback(async () => {
@@ -199,6 +209,71 @@ export default function App() {
     }
   };
 
+  const handleRetryLoopDemo = async () => {
+    setLoadingEval(true);
+    setErrorBanner(null);
+    setChargeFeedback(null);
+    const loopReq = {
+      agent_id: 'agent-devops',
+      merchant_name: 'RunPod Cloud',
+      merchant_domain: 'runpod.io',
+      merchant_mcc: 'CLOUD',
+      amount_inr: 1200.0,
+      cart_items: ['1x A100 GPU node (timeout retry)'],
+      agent_reasoning: 'Retrying cloud compute checkout after gateway timeout.',
+    };
+    try {
+      let lastRes = null;
+      for (let i = 0; i < 3; i += 1) {
+        lastRes = await api.evaluateSpend(loopReq);
+      }
+      if (lastRes) {
+        setEvaluation(lastRes);
+      }
+      const st = await api.getState();
+      setState(st);
+    } catch (err) {
+      setErrorBanner(err.message);
+    } finally {
+      setLoadingEval(false);
+    }
+  };
+
+  const handleCreateMandate = async (e) => {
+    e.preventDefault();
+    setSigningMandate(true);
+    setErrorBanner(null);
+    try {
+      await api.createMandate({
+        agent_id: mandateForm.agent_id,
+        natural_language_intent: mandateForm.natural_language_intent,
+        max_daily_inr: Number(mandateForm.max_daily_inr),
+        max_single_tx_inr: Number(mandateForm.max_single_tx_inr),
+        allowed_mccs: mandateForm.allowed_mccs_csv
+          .split(',')
+          .map((s) => s.trim().toUpperCase())
+          .filter(Boolean),
+        allow_recurring: Boolean(mandateForm.allow_recurring),
+      });
+      const st = await api.getState();
+      setState(st);
+    } catch (err) {
+      setErrorBanner(err.message);
+    } finally {
+      setSigningMandate(false);
+    }
+  };
+
+  const handleVerifyTamper = async (mandateId) => {
+    setErrorBanner(null);
+    try {
+      const res = await api.verifyMandateTamper(mandateId);
+      setTamperResults((prev) => ({ ...prev, [mandateId]: res }));
+    } catch (err) {
+      setErrorBanner(err.message);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-10">
       <TopNav
@@ -313,6 +388,17 @@ export default function App() {
                       <div className="font-bold text-xs text-[#0D2616]">{sc.label}</div>
                     </button>
                   ))}
+                  <button
+                    disabled={loadingEval}
+                    onClick={handleRetryLoopDemo}
+                    className="sm:col-span-2 text-left p-3 rounded-2xl bg-[#FFE8EC]/60 hover:bg-[#FFE8EC] border border-[#E11D48]/50 hover:border-[#E11D48] transition flex items-center justify-between"
+                  >
+                    <div>
+                      <div className="font-mono text-[9.5px] font-bold text-[#E11D48]">VELOCITY CIRCUIT BREAKER</div>
+                      <div className="font-bold text-xs text-[#0D2616]">5. Trigger 3x Runaway Retry Loop (INR 1,200 x 3 in 60s)</div>
+                    </div>
+                    <span className="font-mono text-[10px] font-bold text-[#E11D48]">AUTO-PAUSE →</span>
+                  </button>
                 </div>
               </div>
 
@@ -346,20 +432,85 @@ export default function App() {
                 <ShieldCheck className="w-4 h-4" />
                 SIGNED GOOGLE AP2 MANDATES (Ed25519 + SHA-256)
               </div>
-              <div className="space-y-2.5 max-h-[540px] overflow-y-auto pr-1">
-                {state.mandates.map((m, i) => (
-                  <div key={i} className="p-3 rounded-2xl bg-[#F6FBF5] border border-[#CDE4C8] text-xs space-y-1">
-                    <div className="flex justify-between font-mono font-bold">
-                      <span className="text-[#15803D]">{m.kind} MANDATE</span>
-                      <span className="text-[#4A6653]">{m.mandate_id || m.cart_id || m.payment_mandate_id}</span>
+
+              <form onSubmit={handleCreateMandate} className="p-3.5 rounded-2xl bg-[#E8F8E2]/60 border border-[#CDE4C8] space-y-2.5 text-xs">
+                <div className="font-mono text-[10.5px] font-bold text-[#15803D]">SIGN NEW HUMAN INTENT MANDATE</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <select
+                    value={mandateForm.agent_id}
+                    onChange={(e) => setMandateForm({ ...mandateForm, agent_id: e.target.value })}
+                    className="rounded-xl border border-[#CDE4C8] bg-white px-2.5 py-1.5 font-semibold"
+                  >
+                    {state.agents.map((a) => (
+                      <option key={a.agent_id} value={a.agent_id}>{a.name}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    min="100"
+                    value={mandateForm.max_daily_inr}
+                    onChange={(e) => setMandateForm({ ...mandateForm, max_daily_inr: e.target.value })}
+                    placeholder="Daily Cap INR"
+                    className="rounded-xl border border-[#CDE4C8] bg-white px-2.5 py-1.5 font-mono"
+                  />
+                  <input
+                    value={mandateForm.allowed_mccs_csv}
+                    onChange={(e) => setMandateForm({ ...mandateForm, allowed_mccs_csv: e.target.value })}
+                    placeholder="MCCs (CLOUD, API)"
+                    className="rounded-xl border border-[#CDE4C8] bg-white px-2.5 py-1.5 font-mono"
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={mandateForm.natural_language_intent}
+                    onChange={(e) => setMandateForm({ ...mandateForm, natural_language_intent: e.target.value })}
+                    className="flex-1 min-w-[200px] rounded-xl border border-[#CDE4C8] bg-white px-2.5 py-1.5"
+                    placeholder="Human natural-language delegation intent..."
+                  />
+                  <button
+                    type="submit"
+                    disabled={signingMandate}
+                    className="rounded-xl bg-[#8CE563] hover:bg-[#7AD950] border border-[#15803D] px-3.5 py-1.5 font-extrabold text-[#0D2616]"
+                  >
+                    {signingMandate ? 'Signing...' : 'Sign Ed25519'}
+                  </button>
+                </div>
+              </form>
+
+              <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
+                {state.mandates.map((m, i) => {
+                  const mid = m.mandate_id || m.cart_id || m.payment_mandate_id;
+                  const tv = tamperResults[mid];
+                  return (
+                    <div key={i} className="p-3 rounded-2xl bg-[#F6FBF5] border border-[#CDE4C8] text-xs space-y-1">
+                      <div className="flex justify-between items-center font-mono font-bold gap-2">
+                        <span className="text-[#15803D]">{m.kind} MANDATE</span>
+                        <span className="text-[#4A6653]">{mid}</span>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-[#0D2616] font-semibold">
+                          Agent: {m.agent_id || m.merchant_name} {m.exact_amount_inr ? `• Exact INR ${m.exact_amount_inr}` : ''}
+                        </div>
+                        {m.kind === 'INTENT' && m.mandate_id && (
+                          <button
+                            onClick={() => handleVerifyTamper(m.mandate_id)}
+                            className="rounded-lg bg-white hover:bg-[#E8F8E2] border border-[#15803D]/50 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#15803D]"
+                          >
+                            Verify &amp; Tamper-Test Ed25519
+                          </button>
+                        )}
+                      </div>
+                      {tv && (
+                        <div className="rounded-lg bg-white border border-[#CDE4C8] px-2.5 py-1 font-mono text-[10px] font-bold flex flex-wrap gap-3">
+                          <span className="text-[#15803D]">Original Sig: {tv.original_valid ? 'VALID ✓' : 'INVALID ✕'}</span>
+                          <span className="text-[#E11D48]">+₹1 Tampered Sig: {tv.tampered_valid ? 'ACCEPTED' : 'REJECTED ✕'}</span>
+                        </div>
+                      )}
+                      <div className="font-mono text-[10px] text-[#4A6653] truncate">SHA256: {m.canonical_hash}</div>
+                      <div className="font-mono text-[10px] text-[#0D9488] truncate">Ed25519 Sig: {m.signature_b64}</div>
                     </div>
-                    <div className="text-[#0D2616] font-semibold">
-                      Agent: {m.agent_id || m.merchant_name} {m.exact_amount_inr ? `• Exact INR ${m.exact_amount_inr}` : ''}
-                    </div>
-                    <div className="font-mono text-[10px] text-[#4A6653] truncate">SHA256: {m.canonical_hash}</div>
-                    <div className="font-mono text-[10px] text-[#0D9488] truncate">Ed25519 Sig: {m.signature_b64}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

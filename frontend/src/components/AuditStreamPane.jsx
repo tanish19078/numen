@@ -18,7 +18,7 @@ export default function AuditStreamPane({ evaluation, sseFeed, onOpenPasskey }) 
             <Cpu className="w-3.5 h-3.5" />
             GEMINI ENTERPRISE GLASS-BOX CONTROL PLANE
           </div>
-          <div className="text-xs text-[#4A6653]">ADK + A2A Mesh + AttriGuard + Python Agent Sandbox</div>
+          <div className="text-xs text-[#4A6653]">ADK + A2A Mesh + CaMeL + AttriGuard + Python Agent Sandbox</div>
         </div>
         {evaluation && (
           <span className="rounded-full bg-[#E8F1FF] border border-[#1D4ED8]/40 px-3 py-1 font-mono text-[11px] font-bold text-[#1D4ED8]">
@@ -106,6 +106,68 @@ export default function AuditStreamPane({ evaluation, sseFeed, onOpenPasskey }) 
               </div>
             )}
           </div>
+
+          {/* DeepMind CaMeL Control-Data Capability Provenance */}
+          {evaluation.camel_provenance && (
+            <div className="rounded-2xl bg-[#F6FBF5] border border-[#CDE4C8] p-3.5 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-[11px] font-bold text-[#1D4ED8] flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  DEEPMIND CaMeL PROVENANCE (arXiv:2503.18813)
+                </span>
+                <span
+                  className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold ${
+                    evaluation.camel_provenance.control_data_isolated
+                      ? 'bg-[#E8F8E2] text-[#15803D]'
+                      : 'bg-[#FFE8EC] text-[#E11D48]'
+                  }`}
+                >
+                  {evaluation.camel_provenance.control_data_isolated ? 'ISOLATED ✓' : 'VIOLATION ✕'}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(evaluation.camel_provenance.capability_checks || {}).map(([cap, ok]) => (
+                  <span
+                    key={cap}
+                    className={`rounded-lg px-2 py-0.5 font-mono text-[10px] font-bold border ${
+                      ok
+                        ? 'bg-white border-[#CDE4C8] text-[#15803D]'
+                        : 'bg-[#FFE8EC] border-[#E11D48] text-[#E11D48]'
+                    }`}
+                  >
+                    {cap}: {ok ? 'PASS' : 'FAIL'}
+                  </span>
+                ))}
+              </div>
+              {evaluation.camel_provenance.tainted_inputs?.length > 0 && (
+                <div className="font-mono text-[10px] text-[#4A6653]">
+                  Quarantined Inputs: {evaluation.camel_provenance.tainted_inputs.join(' • ')}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Fine-Print & Lookalike Spoof Card */}
+          {evaluation.fineprint && (evaluation.fineprint.has_trap || evaluation.fineprint.spoofed_domain_of) && (
+            <div className="rounded-2xl bg-[#FEF5E4] border border-[#D97706] p-3.5 space-y-1.5 text-xs">
+              <div className="flex items-center justify-between font-mono text-[11px] font-bold text-[#B45309]">
+                <span>FINE-PRINT &amp; DOMAIN AUDITOR ({evaluation.fineprint.severity})</span>
+                {evaluation.fineprint.hidden_annual_inr > 0 && (
+                  <span className="text-[#E11D48]">Hidden Annual: ₹{evaluation.fineprint.hidden_annual_inr.toLocaleString('en-IN')}/yr</span>
+                )}
+              </div>
+              {evaluation.fineprint.spoofed_domain_of && (
+                <div className="font-bold text-[#9F1239]">
+                  Lookalike Spoof Detected: impersonates canonical vendor <span className="mono">{evaluation.fineprint.spoofed_domain_of}</span>
+                </div>
+              )}
+              {evaluation.fineprint.clauses_flagged?.map((cl, idx) => (
+                <div key={idx} className="rounded-lg bg-white/85 border border-[#FDE68A] p-2 text-[11px] text-[#0D2616]">
+                  {cl}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* A2A Trace Hops */}
           <div className="space-y-1.5">

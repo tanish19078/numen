@@ -19,6 +19,7 @@ export const api = {
   resetDemo: () => req('/api/reset', { method: 'POST' }),
   toggleAgent: (agentId) => req(`/api/agents/${agentId}/toggle-status`, { method: 'POST' }),
   createMandate: (payload) => req('/api/mandates', { method: 'POST', body: JSON.stringify(payload) }),
+  verifyMandateTamper: (mandateId) => req(`/api/mandates/${mandateId}/verify-tamper`, { method: 'POST' }),
   evaluateSpend: (payload) => req('/api/spend/evaluate', { method: 'POST', body: JSON.stringify(payload) }),
   chargeCard: (cardId, payload) => req(`/api/cards/${cardId}/charge`, { method: 'POST', body: JSON.stringify(payload) }),
   resolvePasskey: (challengeId, action) =>
