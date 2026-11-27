@@ -130,6 +130,25 @@ def create_mandate(req: CreateIntentMandateRequest) -> dict[str, Any]:
     return {"mandate": mandate.model_dump()}
 
 
+@app.post("/api/mandates/{mandate_id}/verify-tamper")
+def verify_mandate_tamper(mandate_id: str) -> dict[str, Any]:
+    """Demonstrate Ed25519 cryptographic integrity: original passes, 1-rupee tamper fails."""
+    mandate = db.get_intent_mandate(mandate_id)
+    if not mandate:
+        raise HTTPException(status_code=404, detail=f"IntentMandate '{mandate_id}' not found")
+    orig_dict = mandate.model_dump()
+    original_valid = crypto_ap2.verify_mandate(orig_dict, mandate.signature_b64, mandate.public_key_b64)
+    tampered_dict = mandate.model_copy(update={"max_daily_inr": mandate.max_daily_inr + 1.0}).model_dump()
+    tampered_valid = crypto_ap2.verify_mandate(tampered_dict, mandate.signature_b64, mandate.public_key_b64)
+    return {
+        "mandate_id": mandate_id,
+        "original_valid": original_valid,
+        "tampered_valid": tampered_valid,
+        "canonical_hash": mandate.canonical_hash,
+        "algorithm": "Ed25519 + SHA-256",
+    }
+
+
 @app.post("/api/spend/evaluate")
 def evaluate_spend(req: SpendRequest) -> dict[str, Any]:
     try:

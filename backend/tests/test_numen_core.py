@@ -266,3 +266,13 @@ def test_camel_control_data_provenance_isolation(temp_db):
     assert res_tainted.camel_provenance.control_data_isolated is False
     assert res_tainted.camel_provenance.capability_checks["CAP_MCC_SCOPE"] is False
     assert res_tainted.camel_provenance.capability_checks["CAP_UNTRUSTED_CONTROL_FLOW_BLOCK"] is False
+
+
+def test_mandate_tamper_verify_endpoint(temp_db):
+    with TestClient(app) as client:
+        res = client.post("/api/mandates/mandate_devops_01/verify-tamper")
+        assert res.status_code == 200
+        body = res.json()
+        assert body["original_valid"] is True
+        assert body["tampered_valid"] is False
+        assert body["algorithm"] == "Ed25519 + SHA-256"
