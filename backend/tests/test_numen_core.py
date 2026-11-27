@@ -289,3 +289,54 @@ def test_a2a_agent_card_endpoint(temp_db):
         assert card["endpoints"]["mcp"] == "/mcp"
         skill_ids = [s["id"] for s in card["skills"]]
         assert "request_scoped_card" in skill_ids
+
+
+def test_expired_mandate_rejected_and_ap2_chain_verification(temp_db):
+    expired = crypto_ap2.create_intent_mandate(
+        agent_id="agent-devops",
+        natural_language_intent="Expired mandate check",
+        max_daily_inr=5000.0,
+        max_single_tx_inr=5000.0,
+        allowed_mccs=["CLOUD"],
+        ttl_days=-1,
+    )
+    assert crypto_ap2.verify_mandate(expired.model_dump(), expired.signature_b64, expired.public_key_b64) is False
+
+    req = SpendRequest(
+        agent_id="agent-devops",
+        merchant_name="RunPod Cloud",
+        merchant_domain="runpod.io",
+        merchant_mcc="CLOUD",
+        amount_inr=2400.0,
+        cart_items=["GPU Node"],
+    )
+    ev = evaluate_spend_request(req, db_path=temp_db)
+    assert ev.decision == "MINTED"
+    assert ev.cart_mandate is not None and ev.payment_mandate is not None
+
+    intent = db.get_intent_mandate(ev.cart_mandate.intent_mandate_id, db_path=temp_db)
+    ok, errs = crypto_ap2.verify_ap2_chain(intent, ev.cart_mandate, ev.payment_mandate)
+    assert ok is True
+    assert errs == []
+
+    bad_payment = ev.payment_mandate.model_copy(update={"exact_amount_inr": 2401.0})
+    ok_bad, errs_bad = crypto_ap2.verify_ap2_chain(intent, ev.cart_mandate, bad_payment)
+    assert ok_bad is False
+    assert len(errs_bad) >= 1
+
+    with TestClient(app) as client:
+        r = client.post(
+            "/api/spend/evaluate",
+            json={
+                "agent_id": "agent-devops",
+                "merchant_name": "RunPod Cloud",
+                "merchant_domain": "runpod.io",
+                "merchant_mcc": "CLOUD",
+                "amount_inr": 2100.0,
+                "cart_items": ["GPU"],
+            },
+        )
+        pm_id = r.json()["payment_mandate"]["payment_mandate_id"]
+        vc = client.post(f"/api/mandates/verify-chain/{pm_id}")
+        assert vc.status_code == 200
+        assert vc.json()["valid"] is True

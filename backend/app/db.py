@@ -15,9 +15,11 @@ from .crypto_ap2 import create_intent_mandate
 from .models import (
     AgentAccount,
     AuditEvent,
+    CartMandate,
     IntentMandate,
     MasterVault,
     PasskeyChallenge,
+    PaymentMandate,
     SpendRequest,
     VirtualCard,
 )
@@ -302,6 +304,22 @@ def get_intent_mandate(mandate_id: str, db_path: str | None = None) -> IntentMan
         if not r:
             return None
         return IntentMandate.model_validate_json(r["payload_json"])
+
+
+def get_cart_mandate(cart_id: str, db_path: str | None = None) -> CartMandate | None:
+    with get_conn(db_path) as conn:
+        r = conn.execute("SELECT payload_json FROM mandates WHERE mandate_id = ? AND kind = 'CART'", (cart_id,)).fetchone()
+        if not r:
+            return None
+        return CartMandate.model_validate_json(r["payload_json"])
+
+
+def get_payment_mandate(payment_mandate_id: str, db_path: str | None = None) -> PaymentMandate | None:
+    with get_conn(db_path) as conn:
+        r = conn.execute("SELECT payload_json FROM mandates WHERE mandate_id = ? AND kind = 'PAYMENT'", (payment_mandate_id,)).fetchone()
+        if not r:
+            return None
+        return PaymentMandate.model_validate_json(r["payload_json"])
 
 
 def save_mandate(mandate_id: str, kind: str, agent_id: str, payload_json: str, created_at: str, db_path: str | None = None) -> None:

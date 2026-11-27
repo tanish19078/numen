@@ -210,6 +210,27 @@ def verify_mandate_tamper(mandate_id: str) -> dict[str, Any]:
     }
 
 
+@app.post("/api/mandates/verify-chain/{payment_mandate_id}")
+def verify_full_ap2_chain(payment_mandate_id: str) -> dict[str, Any]:
+    """Verify the entire 3-link AP2 chain: IntentMandate -> CartMandate -> PaymentMandate."""
+    payment = db.get_payment_mandate(payment_mandate_id)
+    if not payment:
+        raise HTTPException(status_code=404, detail=f"PaymentMandate '{payment_mandate_id}' not found")
+    cart = db.get_cart_mandate(payment.cart_id)
+    intent = db.get_intent_mandate(payment.intent_mandate_id)
+    if not cart or not intent:
+        raise HTTPException(status_code=404, detail="Incomplete AP2 chain (missing Intent or Cart mandate)")
+    ok, errors = crypto_ap2.verify_ap2_chain(intent, cart, payment)
+    return {
+        "valid": ok,
+        "errors": errors,
+        "intent_mandate_id": intent.mandate_id,
+        "cart_id": cart.cart_id,
+        "payment_mandate_id": payment.payment_mandate_id,
+        "signer_key_id": crypto_ap2.get_default_signer().key_id(),
+    }
+
+
 @app.post("/api/spend/evaluate")
 def evaluate_spend(req: SpendRequest) -> dict[str, Any]:
     try:

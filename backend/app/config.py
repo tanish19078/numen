@@ -32,6 +32,9 @@ class Settings:
     card_ttl_seconds: int
     drift_threshold: float
     hmac_secret: str
+    signing_seed_hex: str
+    stripe_webhook_secret: str
+    require_dom_attestation: bool
 
 
 def get_settings() -> Settings:
@@ -47,4 +50,7 @@ def get_settings() -> Settings:
         card_ttl_seconds=int(os.getenv("NUMEN_CARD_TTL_SECONDS", "60")),
         drift_threshold=float(os.getenv("NUMEN_ATTRIGUARD_DRIFT_THRESHOLD", "0.25")),
         hmac_secret=os.getenv("NUMEN_HMAC_SECRET", "numen-dev-sandbox-secret-change-in-prod"),
+        signing_seed_hex=os.getenv("NUMEN_SIGNING_SEED_HEX", "").strip(),
+        stripe_webhook_secret=os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_numen_dev_stripe_jit_secret").strip(),
+        require_dom_attestation=os.getenv("NUMEN_REQUIRE_DOM_ATTESTATION", "false").strip().lower() in ("1", "true", "yes"),
     )
